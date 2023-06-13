@@ -2,6 +2,8 @@
 #include "deck.hpp"
 #include <ctime>
 #include <stdexcept>
+#include <algorithm>
+#include <utility>
 #include "suit.hpp"
 #include "trumpGlobalVariable.hpp"
 
@@ -59,14 +61,14 @@ void Deck::reset() {
     pack.clear();
     // the same code as the constructor
     // initalize 52 cards, Hearts = 1, Diamonds = 2, Clubs = 3, Spades = 4
-    for (int i = 1; i < 5; i++) {
+    for (int i = Suit::HEARTS; i <= Suit::SPADES; i++) {
         for (int j = 1; j < 14; j++) {
             pack.push_back(Card(j, i));
         }
     }
-
-    // set the ace of hearts to -1 value
+    // set the ace of hearts to its special suit
     // fortunately this is the first card made (1,1)
+    pack[0].setSuit(Suit::ACE_OF_HEARTS);
     pack[0].setValue(-1);
 }
 
@@ -112,16 +114,24 @@ bool Deck::containsCard(int value, int suit) {
     return false;
 }
 
-Deck& Deck::operator=(const Deck& other) {
-    if (this != &other) {
-        pack = other.pack;
-    }
+// copy and swap baby
+Deck& Deck::operator=(Deck other) {
+    std::swap(this->pack, other.pack);
     return *this;
 }
-std::ostream& operator<< (std::ostream& out, const Deck& d) {
+
+std::ostream& operator<<(std::ostream& out, const Deck& d) {
     for (int i = 0; i < 52; i++) {
         out << d;
         out << " ";
     }
     return out;
+}
+
+// Move assignment operator
+Deck& Deck::operator=(Deck&& other) {
+    if (this != &other) {
+        pack = std::move(other.pack);
+    }
+    return *this;
 }

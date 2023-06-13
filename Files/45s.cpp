@@ -96,6 +96,24 @@ int x45s::getBidAmount() {
     return bidAmount;
 }
 
+bool x45s::dealBidAndFullFiveTricks() {
+    deal_players();
+
+    int bidder = getBidder();
+    setBid(bidAmount, bidder);
+
+    deal_kiddie(bidder);
+    havePlayersDiscard();
+
+    deal_players();
+
+    for (int i = 0; i < 5; i++) {
+        havePlayersPlayCards(bidder);
+    }
+
+    return determineIfWonBid();
+}
+
 // sets both the bid amount and the player who bid
 void x45s::setBid(int bid, int bidderNum) {
     bidAmount = bid;
@@ -148,7 +166,7 @@ bool x45s::determineIfWonBid() {
     // if (current score - the amount bid) >= to their score before they bid
     // then they made their bid
     if (playerScores[bidder] - bidAmount < bidderInitialScore) {
-        playerScores[bidder] -= bidAmount;
+        playerScores[bidder] = bidderInitialScore - bidAmount;
         return false;
     }
     return true;

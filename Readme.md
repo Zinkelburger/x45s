@@ -8,79 +8,46 @@ There is a 45s class, a card class, a deck class, and an abstract Player class. 
 <put description of the example main>
 
 ## x45s
+### Description
 Controls the game. Holds pointers to the 4 players, a deck, a discardDeck to store the cards the players play, the scores of both teams, the amount bid, the suit bid, the bidder (aka the player who bid), the initial score of the bidder (used to calculate if the bidder made their bid or not), and the player who dealt the hand.
 
-The default constructor does not exist. You must provide 4 pointers to initalized player objects, and must remember to deallocate them at the end of the program. 
+The default constructor does not exist. You must pass four constructors to x45s when you call it. This allows x45s to manage the memory for the players, removing the user from forgetting to free the memory. It can be called like example:
 
-I tried some bizarre template thing with the goal of allowing the user to provide pointers to the classes and have x45s initalize the players' memory itself. However, this was not possible because "An abstract class is a class that has at least one pure virtual function, which means that it cannot be instantiated. Instead, you need to create objects of concrete classes derived from the abstract base class" -Bing.
+`x45s arbiter([](){ return new derivedPlayer1(); }, [](){ return new derivedPlayer2(); }, [](){ return new derivedPlayer3(); }, [](){ return new derivedPlayer4(); })`
 
-deal_players deals each player 5 cards.
+### Methods
+`deal_players` deals each player 5 cards.
 
-shuffle calls shuffle on the deck 10 times.
+`shuffle` calls shuffle on the deck 10 times.
 
-reset resets the hands of the player and the deck.
+`reset` resets the hands of the player and the deck.
 
-deal_kiddie deals the kiddie to the player who won the bid. You need to pass the player who won the bid as a parameter.
+`deal_kiddie` deals the kiddie to the player who won the bid. You need to pass the player who won the bid as a parameter.
 
-evaluate_trick returns the best card of the 4 cards. TODO: Consider which player led the hand.
+`evaluate_trick` returns the best card of the 4 cards. TODO: Consider which player led the hand.
 
-updateScores adds 5 points to the team that is passed in the parameter. Must be passed team 0 or 1.
+`updateScores` adds 5 points to the team that is passed in the parameter. Must be passed team 0 or 1.
 
-hasWon returns true if either team has won the game.
+`hasWon` returns true if either team has won the game.
 
-whichPlayerWon returns the number of the team that won the game, or -1 if no one has won.
+`whichPlayerWon` returns the number of the team that won the game, or -1 if no one has won.
 
-havePlayersDiscard calls the player discard method for each player.
+`havePlayersDiscard` calls the player discard method for each player.
 
-getBidAmount returns the amount of the bid.
+`getBidAmount` returns the amount of the bid.
 
-setBid takes (bid, bidderNum). These represent the bid amount and the number of the player who bid.
+`setBid` takes (bid, bidderNum). These represent the bid amount and the number of the player who bid.
 
-getBidder calls the getBid method & returns the player who won the bid (0, 1, 2, 3). bidHistory stores the record of previous bids, and this information is passed to the players. This could be confusing with getBidAmount, I will think of how to resolve their naming similarities.
+`getBidder` calls the `getBid` method & returns the player who won the bid (0, 1, 2, 3). bidHistory stores the record of previous bids, and this information is passed to the players. This could be confusing with getBidAmount, I will think of how to resolve their naming similarities.
 
-getBidSuit returns the suit of the bid.
+`getBidSuit` returns the suit of the bid.
 
-determineIfWonBid returns true if the players won the bid, and false otherwise.
+`determineIfWonBid` returns true if the players won the bid, and false otherwise.
 
-getTeamScore returns the score of the team number passed to it.
+`getTeamScore` returns the score of the team number passed to it.
 
-havePlayersPlayCards takes the number of the player thas is leading, and calls playCard on each of the players in the correct order. It keeps track of the cards played, and passes this information to the playCard method.
+`havePlayersPlayCards` takes the number of the player thas is leading, and calls playCard on each of the players in the correct order. It keeps track of the cards played, and passes this information to the `playCard` method.
 
-## Card
-An int value, int suit that runs the entire program.
-
-There is a default constructor to initalize the card to -1000, -1000
-
-The other constructor takes two parameters: (value, suit)
-
-The operator<< is defined, and outputs the card in a human readable format (e.g. King of Hearts).
-
-Copy constructor is defined
-
-Assignment operator is defined
-
-getValue, getSuit, setValue, setSuit are all defined
-
-operator< and all logical operators are defined
-
-## Deck
-There is only a default constructor. It initalizes the deck to all 52 cards.
-
-shuffle has an optional int parameter to tell it how many times to shuffle. With no parameter, it shuffles once.
-
-pop_back returns the last card in the deck and deletes it
-
-peek_back returns the last card in the deck but does not delete it
-
-reset is the same as the constructor, it deletes the deck and initalizes it again to all 52 cards.
-
-removeCard takes either a Card or (value, suit). It searches for this card and deletes it if it is found. If the card is not found, it throws an exception.
-
-findCard takes either a card of (value, suit). It searches for the card and returns true if it is found, and false otherwise. Only removeCard if you first confirm the card exists with findCard.
-
-The copy assignment operator is defined
-
-The operator<< is defined, and it outputs the cards separated by a space, with no newlines.
 ## Player
 There is only a default constructor.
 
@@ -95,7 +62,7 @@ playCard (the player can choose a card to play from their hand. They are passed 
 
 I have no memory of why I added `virtual Card takeCardInput(std::string inp) = 0;` or what it does.
 
-### Player's not virtual functions
+### Player's non virtual functions
 dealCard is called by x45s to push back cards to the hand.
 
 getSize returns the size of the hand.
@@ -108,6 +75,46 @@ printHand prints the entire hand on one line. If given a parameter it prints to 
 The enum class Suit has Hearts, Diamonds, Clubs, and Spades, as well as ACE_OF_HEARTS to represent the special case of the ace of hearts.
 
 I handle the ace of hearts by giving it its own suit, and its own value of -1.
+
+It is used like `Suit::HEARTS`
+
+## Deck
+There is only a default constructor. It initalizes the deck to all 52 cards.
+
+`shuffle` has an optional int parameter to tell it how many times to shuffle. With no parameter, it shuffles once.
+
+`pop_back` returns the last card in the deck and deletes it
+
+`peek_back` returns the last card in the deck but does not delete it
+
+`reset` is the same as the constructor, it deletes the deck and initalizes it again to all 52 cards.
+
+`removeCard` takes either a Card or (value, suit). It searches for this card and deletes it if it is found. If the card is not found, it throws an exception.
+
+`findCard` takes either a card of (value, suit). It searches for the card and returns true if it is found, and false otherwise. Only removeCard if you first confirm the card exists with findCard.
+
+The copy assignment and copy constructor operators are defined
+
+The `operator<<` is defined, and it outputs the cards separated by a space, with no newlines.
+
+## Card
+### Description
+Two ints: (value and suit) that run the entire program.
+
+The user probably has no need to interact directly with Cards.
+
+There is a default constructor to initalize the card to -1000, -1000. I probably will remove this, as it makes no sense.
+
+The other constructor takes two parameters: `(value, suit)`
+
+### Methods
+The operator<< is defined, and outputs the card in a human readable format (e.g. King of Hearts).
+
+Copy constructor and assignment operator are implicitly defined.
+
+getValue, getSuit, setValue, setSuit are all defined
+
+operator< and all logical operators are defined
 
 ## trumpGlobalVariable
 The program keeps track of trump and suitLed via global variables. Only main should update those.

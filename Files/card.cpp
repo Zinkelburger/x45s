@@ -17,10 +17,6 @@ using std::to_string;
 
 // suits are 1, 2, 3, 4
 // 1 = hearts, 2 = diamonds, 3 = clubs, 4 = spades
-Card::Card(const Card& c) {
-    this->value = c.value;
-    this->suit = c.suit;
-}
 ostream& operator<<(ostream& out, const Card& c) {
     if (c.getValue() == 13) {
         out << "King";

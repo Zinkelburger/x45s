@@ -12,8 +12,13 @@ class x45s {
  public:
     // no default constructor, have to give it the players at initalization
     x45s() = delete;
-    x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
-        initalizePlayers(p1, p2, p3, p4);
+    x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
+    std::function<Player*()> cp3, std::function<Player*()> cp4) : deck() {
+        players.push_back(cp1());
+        players.push_back(cp2());
+        players.push_back(cp3());
+        players.push_back(cp4());
+
         // initalize both the player scores to 0
         playerScores[0] = 0;
         playerScores[1] = 0;
@@ -49,10 +54,11 @@ class x45s {
     bool determineIfWonBid();
     int getTeamScore(int player);
 
+    bool dealBidAndFullFiveTricks();
+
     std::vector<Card> havePlayersPlayCards(int playerLeading);
 
  private:
-    void initalizePlayers(Player* p1, Player* p2, Player* p3, Player* p4);
     Deck deck;
     // Array of pointers to an abstract class
     std::vector<Player*> players;

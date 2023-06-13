@@ -16,16 +16,10 @@ class Card{
     Card() : value(-1000), suit(-1000) {}
     // value, suit
     Card(int inpValue, int inpSuit) : value(inpValue), suit(inpSuit) {}
-    Card(const Card& c);
+
     friend std::ostream& operator<<(std::ostream& out, const Card& c);
     friend std::istream& operator>>(std::istream& in, Card& c);
-    Card& operator=(const Card& c) {
-        if (this != &c) {
-            this->value = c.value;
-            this->suit = c.suit;
-        }
-        return *this;
-    }
+
     int getValue() const {
         return value;
     }
