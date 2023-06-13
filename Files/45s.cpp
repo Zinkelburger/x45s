@@ -36,15 +36,14 @@ void x45s::deal_kiddie(int winner) {
         players[winner]->dealCard(deck.pop_back());
     }
 }
-// evaluate the trick thrown all four players. Returns the winning card
+// evaluate the trick thrown by all four players. Returns the winning card
 Card x45s::evaluate_trick(Card card1, Card card2, Card card3, Card card4) {
     // may be slower than like 15 if statements, but it is very readable
     std::vector<Card> c = {card1, card2, card3, card4};
     return *std::max_element(c.begin(), c.end());
 }
 
-// keep track of the scores for each player.
-// If someone gets 120 points, they win and the game ends
+// adds 5 points to the team input (team 0 or 1)
 void x45s::updateScores(int player) {
     if (player != 0 && player != 1) {
         throw std::invalid_argument("Invalid player " + std::to_string(player) +
@@ -53,6 +52,7 @@ void x45s::updateScores(int player) {
     playerScores[player] += 5;
 }
 
+// returns the score of the team input (team 0 or 1)
 int x45s::getTeamScore(int player) {
     if (player != 0 && player != 1) {
         throw std::invalid_argument("Invalid player " +
@@ -61,34 +61,41 @@ int x45s::getTeamScore(int player) {
     return playerScores[player];
 }
 
+// returns true if either team has won
 bool x45s::hasWon() {
-    for (int i = 0; i < 2; i++) {
-        // if any player has 120 points or greater, then they have won
-        if (playerScores[i] >= 120) {
-            return true;
-        }
+    // if either team has 120 points or greater, then they have won
+    if (playerScores[0] >= 120) {
+        return true;
+    }
+    if (playerScores[1] >= 120) {
+        return true;
     }
     return false;
 }
-// Returns the number of the player that has won the game (from 0 to 3).
+
+// Returns the number of the player that has won the game (0 or 1).
 // Returns -1 if no one has won
 int x45s::whichPlayerWon() {
-    for (int i = 0; i < 2; i++) {
-        // if any player got 120 points or greater, then they have won
-        if (playerScores[i] >= 120) {
-            return i;
-        }
+    if (playerScores[0] >= 120) {
+            return 0;
+    }
+    if (playerScores[1] >= 120) {
+        return 1;
     }
     return -1;
 }
+
+// calls each player's discard method
 void x45s::havePlayersDiscard() {
     for (auto& e : players) {
         e->discard();
     }
 }
+
 int x45s::getBidAmount() {
     return bidAmount;
 }
+
 // sets both the bid amount and the player who bid
 void x45s::setBid(int bid, int bidderNum) {
     bidAmount = bid;
@@ -97,6 +104,7 @@ void x45s::setBid(int bid, int bidderNum) {
     // keep track of the bidder's score to detect if they won their bid or not
     bidderInitialScore = playerScores[bidder];
 }
+
 int x45s::getBidder() {
     // start the hand with a fresh bid history
     bidHistory.clear();
@@ -121,6 +129,8 @@ int x45s::getBidder() {
         currentBid = players[playerDealing]->getBid(bidHistory);
         firstPlayer = playerDealing;
     }
+
+    // increment the player dealing mod 4
     playerDealing++;
     playerDealing %= 4;
 
@@ -129,9 +139,11 @@ int x45s::getBidder() {
 
     return firstPlayer;
 }
+
 int x45s::getBidSuit() {
     return bidSuit;
 }
+
 bool x45s::determineIfWonBid() {
     // if (current score - the amount bid) >= to their score before they bid
     // then they made their bid
@@ -141,12 +153,14 @@ bool x45s::determineIfWonBid() {
     }
     return true;
 }
+
 void x45s::reset() {
     for (auto& e : players) {
         e->resetHand();
     }
     deck.reset();
 }
+
 std::vector<Card> x45s::havePlayersPlayCards(int playerLeading) {
     std::vector<Card> cardsPlayed;
     for (int cardNum = playerLeading; cardNum < 4 + playerLeading; cardNum++) {

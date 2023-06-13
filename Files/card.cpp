@@ -65,16 +65,12 @@ istream& operator>>(istream& in, const Card& c) {
 // Returns 1 (true) if the left card is smaller than the right card, and 0 if false
 // Precondition: neither of the cards is trump (checked by operator<)
 int evaluateOffSuit(const Card& lhs, const Card& rhs) {
-    // neither card is suitLed
+    // neither card is suitLed. They will both lose, and there is no way to directly compare them.
     if (lhs.getSuit() != suitLed && rhs.getSuit() != suitLed) {
-        // the case where neither card is offsuit, maybe throw an exception
-        throw(std::invalid_argument("evaluateOffSuit called with suits: " +
-    std::to_string(lhs.getSuit()) + " " +
-        std::to_string(rhs.getSuit()) + " and trump is " + std::to_string(trump) + "\n"));
         return -1;
     }
 
-    // one of the cards is of suitLed
+    // now we know one of the cards is of suitLed
     int heartsAndDiamonds[14] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
     int clubsAndSpades[14] = {13, 12, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     int* order;
@@ -84,7 +80,6 @@ int evaluateOffSuit(const Card& lhs, const Card& rhs) {
         order = clubsAndSpades;
     }
 
-    // we know at least one of the cards is suitLed by this point
     // both cards are suitLed
     if (lhs.getSuit() == suitLed && rhs.getSuit() == suitLed) {
         for (int i = 0; i < 14; i++) {
@@ -121,7 +116,10 @@ bool operator<(const Card& lhs, const Card& rhs) {
     if ((lhs.getSuit() != trump && lhs.getSuit() != Suit::ACE_OF_HEARTS)
     && (rhs.getSuit() != trump && rhs.getSuit() != Suit::ACE_OF_HEARTS)) {
         int r = evaluateOffSuit(lhs, rhs);
-        // I have evaluateOffSuite throw an exception, but it is something to consider how to solve
+        // TODO(zinkelburger): Find a better way to resolve "neither card is a winner" situation
+        if (r == -1) {
+            return false;
+        }
         return r;
     }
 
