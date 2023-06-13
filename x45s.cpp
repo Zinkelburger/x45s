@@ -13,15 +13,6 @@ namespace x45s {
     using std::ostream;
     using std::istream;
 
-    x45s::x45s() : deck() {
-        initalizePlayers();
-        // initalize both the player scores to 0
-        playerScores[0] = 0;
-        playerScores[1] = 0;
-        // player 0 can deal first. This is incremented mod 4 after every deal
-        playerDealing = 0;
-    }
-
     void x45s::shuffle() {
         deck.shuffle(10);
     }

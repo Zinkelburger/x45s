@@ -19,8 +19,8 @@ class Player {
         hand.push_back(c);
     }
     virtual void discard() = 0;
-    // bidAmount, suit
-    virtual std::pair<int, int> getBid() = 0;
+    // pair is bidAmount, suit
+    virtual std::pair<int, int> getBid(std::vector<int>& bidHistory) = 0;
     virtual Card playCard(std::vector<Card> cardsPlayedThisHand) = 0;
     int getSize() {
         return hand.size();

@@ -14,6 +14,11 @@ class x45s {
     x45s() = delete;
     x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
         initalizePlayers(p1, p2, p3, p4);
+        // initalize both the player scores to 0
+        playerScores[0] = 0;
+        playerScores[1] = 0;
+        // player 0 can deal first. This is incremented mod 4 after every deal
+        playerDealing = 0;
     }
     void deal_players();
     void shuffle();
@@ -23,7 +28,7 @@ class x45s {
     // evaluate the trick thrown all four players. Returns the winning card
     Card evaluate_trick(Card card1, Card card2, Card card3, Card card4);
 
-    // keep track of the scores for each player. If someone gets 120 points, they win and the game ends
+    // keep track of the scores. If someone gets 120 points, they win
     void updateScores(int player);
 
     bool hasWon();
@@ -45,13 +50,14 @@ class x45s {
     int getTeamScore(int player);
 
     std::vector<Card> havePlayersPlayCards(int playerLeading);
-private:
-    void x45s::initalizePlayers(Player* p1, Player* p2, Player* p3, Player* p4);
-    // I think it makes more sense for 45s to make a copy of the vector, and main can call methods for 45s to do things with the deck (like deal)
+
+ private:
+    void initalizePlayers(Player* p1, Player* p2, Player* p3, Player* p4);
     Deck deck;
-    // I can't have an array of an abstract class, so I have an array of pointers to an abstract class 
+    // Array of pointers to an abstract class
     std::vector<Player*> players;
     std::vector<Card> discardDeck;
+    std::vector<int> bidHistory;
     // only two player scores because there are two teams
     int playerScores[2];
     int bidAmount;

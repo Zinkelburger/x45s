@@ -10,7 +10,9 @@ There is a 45s class, a card class, a deck class, and an abstract Player class. 
 ## x45s
 Controls the game. Holds pointers to the 4 players, a deck, a discardDeck to store the cards the players play, the scores of both teams, the amount bid, the suit bid, the bidder (aka the player who bid), the initial score of the bidder (used to calculate if the bidder made their bid or not), and the player who dealt the hand.
 
-The default constructor does not exist. You must provide 4 pointers to player objects. This constructor also calls the default constructor for the deck.
+The default constructor does not exist. You must provide 4 pointers to initalized player objects, and must remember to deallocate them at the end of the program. 
+
+I tried some bizarre template thing with the goal of allowing the user to provide pointers to the classes and have x45s initalize the players' memory itself. However, this was not possible because "An abstract class is a class that has at least one pure virtual function, which means that it cannot be instantiated. Instead, you need to create objects of concrete classes derived from the abstract base class" -Bing.
 
 deal_players deals each player 5 cards.
 
@@ -34,7 +36,7 @@ getBidAmount returns the amount of the bid.
 
 setBid takes (bid, bidderNum). These represent the bid amount and the number of the player who bid.
 
-getBidder calls the getBid method & returns the player who won the bid (0, 1, 2, 3). This could be confusing with getBidAmount, I will think of how to resolve their naming similarities.
+getBidder calls the getBid method & returns the player who won the bid (0, 1, 2, 3). bidHistory stores the record of previous bids, and this information is passed to the players. This could be confusing with getBidAmount, I will think of how to resolve their naming similarities.
 
 getBidSuit returns the suit of the bid.
 
@@ -87,7 +89,7 @@ Each player's hand is a vector of Cards.
 ### Player's virtual functions
 discard (the player can choose to remove cards from their hand)
 
-getBid (the player can choose a bid. It is <value, suit>)
+getBid (the player can choose a bid. It is <value, suit>). The function is always called with a vector of ints, so that the player has the ability to consider other player's bids when they make their bid.
 
 playCard (the player can choose a card to play from their hand. They are passed the vector of cards played so far this hand)
 

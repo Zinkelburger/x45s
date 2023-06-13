@@ -19,4 +19,4 @@ lint:
 	cpplint *.cpp *.hpp
 
 clean:
-	rm *.o Frank test
+	rm *.o Frank tests
