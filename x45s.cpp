@@ -7,6 +7,9 @@
 #include <vector>
 #include <iostream>
 
+int trump = -1;
+int suitLed = -1;
+
 namespace x45s {
     using std::to_string;
     using std::vector;
@@ -39,57 +42,105 @@ namespace x45s {
             players[winner]->dealCard(deck.pop_back());
         }
     }
-    // evaluate the trick thrown all four players. Returns the winning card
-    Card x45s::evaluate_trick (Card card1, Card card2, Card card3, Card card4) {
+    // evaluate the trick thrown by all four players. Returns the winning card
+    Card x45s::evaluate_trick(Card card1, Card card2, Card card3, Card card4) {
         // may be slower than like 15 if statements, but it is very readable
         std::vector<Card> c = {card1, card2, card3, card4};
         return *std::max_element(c.begin(), c.end());
-    }   
+    }
 
-    // keep track of the scores for each player.
-    // If someone gets 120 points, they win and the game ends
+    // evaluate the trick thrown by all four players. Returns the winning card
+    Card x45s::evaluate_trick(std::vector<Card> c) {
+        // may be slower than like 15 if statements, but it is very readable
+        return *std::max_element(c.begin(), c.end());
+    }
+
+    // adds 5 points to the team input (team 0 or 1)
     void x45s::updateScores(int player) {
-        if(player != 0 && player != 1){
-            throw std::invalid_argument("Invalid player " + std::to_string(player) + " in updateScores. Must be 0 or 1");
+        if (player != 0 && player != 1) {
+            throw std::invalid_argument("Invalid player " + std::to_string(player) +
+            " in updateScores. Must be 0 or 1");
         }
         playerScores[player] += 5;
     }
 
+    // returns the score of the team input (team 0 or 1)
     int x45s::getTeamScore(int player) {
-        if(player != 0 && player != 1){
-            throw std::invalid_argument("Invalid player " + std::to_string(player) + " in updateScores. Must be 0 or 1");
+        if (player != 0 && player != 1) {
+            throw std::invalid_argument("Invalid player " +
+            std::to_string(player) + " in updateScores. Must be 0 or 1");
         }
         return playerScores[player];
     }
 
+    // returns true if either team has won
     bool x45s::hasWon() {
-        for(int i = 0; i < 2; i++) {
-            // if any player has 120 points or greater, then they have won
-            if(playerScores[i] >= 120) {
-                return true;
-            }
+        // if either team has 120 points or greater, then they have won
+        if (playerScores[0] >= 120) {
+            return true;
+        }
+        if (playerScores[1] >= 120) {
+            return true;
         }
         return false;
     }
-    // Returns the number of the player that has won the game (from 0 to 3).
+
+    // Returns the number of the player that has won the game (0 or 1).
     // Returns -1 if no one has won
     int x45s::whichPlayerWon() {
-        for(int i = 0; i<2; i++) {
-            // if any player got 120 points or greater, then they have won
-            if(playerScores[i] >= 120) {
-                return i;
-            }
+        if (playerScores[0] >= 120) {
+                return 0;
+        }
+        if (playerScores[1] >= 120) {
+            return 1;
         }
         return -1;
     }
+
+    // calls each player's discard method
     void x45s::havePlayersDiscard() {
         for (auto& e : players) {
             e->discard();
         }
     }
+
     int x45s::getBidAmount() {
         return bidAmount;
     }
+
+    bool x45s::dealBidAndFullFiveTricks() {
+        deal_players();
+
+        int bidder = getBidder();
+        setBid(bidAmount, bidder);
+
+        trump = getBidSuit();
+
+        deal_kiddie(bidder);
+        havePlayersDiscard();
+
+        deal_players();
+
+        int firstPlayer = bidder;
+        // stores the card and the player who played it
+        std::pair<Card, int> highCard;
+
+        // there are 5 tricks in each hand
+        for (int i = 0; i < 5; i++) {
+            std::pair<Card, int> winnerAndCard = havePlayersPlayCardsAndEvaluate(firstPlayer);
+            // player who won will lead the next trick
+            firstPlayer = winnerAndCard.second;
+
+            if (winnerAndCard.first > highCard.first || i == 0) {
+                highCard = winnerAndCard;
+            }
+        }
+        // give the high card bonus to the team
+        updateScores(highCard.second % 2);
+
+        return determineIfWonBidAndDeduct();
+    }
+
     // sets both the bid amount and the player who bid
     void x45s::setBid(int bid, int bidderNum) {
         bidAmount = bid;
@@ -98,63 +149,107 @@ namespace x45s {
         // keep track of the bidder's score to detect if they won their bid or not
         bidderInitialScore = playerScores[bidder];
     }
+
+    // gets the bids for each player and increments the dealer
     int x45s::getBidder() {
-        std::pair<int, int> what;
-        std::pair<int, int> maxWhat = {-2, -2};
-        int i = 0;
+        // start the hand with a fresh bid history
+        bidHistory.clear();
+        // pair is <value, suit>
+        std::pair<int, int> currentBid;
+        std::pair<int, int> maxBid = {-2, -2};
         int firstPlayer = -1;
-        for (auto& e : players) {
-            what = e->getBid();
-            if (what.first > maxWhat.first) {
-                maxWhat = what;
-                firstPlayer = i;
+
+        for (int i = playerDealing; i < playerDealing + 4; i++) {
+            currentBid = players[i % 4]->getBid(bidHistory);
+            // .first is the value
+            if (currentBid.first != 0) {
+                bidHistory.push_back(currentBid.first);
+                if (currentBid.first > maxBid.first) {
+                    maxBid = currentBid;
+                    firstPlayer = i;
+                }
             }
             i++;
         }
 
         // if no player bid, then bag the dealer
-        if (maxWhat.first == 0) {
-            what = players[playerDealing]->getBid();
+        if (maxBid.first <= 0) {
+            currentBid = players[playerDealing]->bagged();
             firstPlayer = playerDealing;
-            
         }
+
+        // increment the player dealing mod 4
         playerDealing++;
         playerDealing %= 4;
 
-        bidAmount = maxWhat.first;
-        bidSuit = maxWhat.second;
+        bidAmount = maxBid.first;
+        bidSuit = maxBid.second;
 
         return firstPlayer;
     }
+
     int x45s::getBidSuit() {
         return bidSuit;
     }
-    bool x45s::determineIfWonBid() {
-        // if their (current score - the amount they bid) is greater than or equal to their score before they bid, then they made their bid
+
+    bool x45s::determineIfWonBidAndDeduct() {
+        // if (current score - the amount bid) >= to their score before they bid
+        // then they made their bid
         if (playerScores[bidder] - bidAmount < bidderInitialScore) {
-            playerScores[bidder] -= bidAmount;
+            playerScores[bidder] = bidderInitialScore - bidAmount;
             return false;
         }
         return true;
     }
+
     void x45s::reset() {
         for (auto& e : players) {
             e->resetHand();
         }
         deck.reset();
     }
+
+    // returns a vector of the cards played by each player
     std::vector<Card> x45s::havePlayersPlayCards(int playerLeading) {
-        std::vector<Card> cardsPlayed;
-        for (int cardNum = playerLeading; cardNum < 4 + playerLeading; cardNum++) {
-            cardsPlayed.push_back((*(players[cardNum % 4])).playCard(cardsPlayed));
+        std::vector<Card> cardsPlayed(4);
+        cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
+        suitLed = cardsPlayed[playerLeading % 4].getSuit();
+        if (suitLed == Suit::ACE_OF_HEARTS) {
+            suitLed = Suit::HEARTS;
+        }
+        for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
+        cardsPlayed[playerLeading % 4] = (*(players[cardNum % 4])).playCard(cardsPlayed);
         }
         return cardsPlayed;
     }
-    void x45s::initalizePlayers(Player* p1, Player* p2, Player* p3, Player* p4) {
-        players.push_back(p1);
-        players.push_back(p2);
-        players.push_back(p3);
-        players.push_back(p4);
+
+    // have players play their cards and returns the Card & Player who won the trick
+    std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
+        std::vector<Card> cardsPlayed(4);
+
+        cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
+        suitLed = cardsPlayed[playerLeading % 4].getSuit();
+
+        if (suitLed == Suit::ACE_OF_HEARTS) {
+            suitLed = Suit::HEARTS;
+        }
+        // calls playCard for the other 3 players and stores their card in an array
+        for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
+            cardsPlayed[playerLeading % 4] = (*(players[cardNum % 4])).playCard(cardsPlayed);
+        }
+
+        Card winningCard(evaluate_trick(cardsPlayed));
+        int winningPlayer;
+        if (winningCard == cardsPlayed[0]) {
+            winningPlayer = 0;
+        } else if (winningCard == cardsPlayed[1]) {
+            winningPlayer = 1;
+        } else if (winningCard == cardsPlayed[2]) {
+            winningPlayer = 2;
+        } else {
+            winningPlayer = 3;
+        }
+        return std::make_pair(winningCard, winningPlayer);
     }
 
     // 45s Card is different from a normal card because of the 5 of hearts and the rules
@@ -164,10 +259,6 @@ namespace x45s {
 
     // suits are 1, 2, 3, 4
     // 1 = hearts, 2 = diamonds, 3 = clubs, 4 = spades
-    Card::Card(const Card& c) {
-        this->value = c.value;
-        this->suit = c.suit;
-    }
     ostream& operator<<(ostream& out, const Card& c) {
         if (c.getValue() == 13) {
             out << "King";
@@ -212,16 +303,13 @@ namespace x45s {
     // Returns 1 (true) if the left card is smaller than the right card, and 0 if false
     // Precondition: neither of the cards is trump (checked by operator<)
     int evaluateOffSuit(const Card& lhs, const Card& rhs) {
-        // neither card is suitLed
+        // neither card is suitLed. They will both lose
+        // and there is no way to directly compare them.
         if (lhs.getSuit() != suitLed && rhs.getSuit() != suitLed) {
-            // the case where neither card is offsuit, maybe throw an exception
-            throw(std::invalid_argument("evaluateOffSuit called with suits: " +
-        std::to_string(lhs.getSuit()) + " " +
-            std::to_string(rhs.getSuit()) + " and trump is " + std::to_string(trump) + "\n"));
             return -1;
         }
 
-        // one of the cards is of suitLed
+        // now we know one of the cards is of suitLed
         int heartsAndDiamonds[14] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
         int clubsAndSpades[14] = {13, 12, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         int* order;
@@ -231,7 +319,6 @@ namespace x45s {
             order = clubsAndSpades;
         }
 
-        // we know at least one of the cards is suitLed by this point
         // both cards are suitLed
         if (lhs.getSuit() == suitLed && rhs.getSuit() == suitLed) {
             for (int i = 0; i < 14; i++) {
@@ -251,7 +338,7 @@ namespace x45s {
         throw("How the hell did you get here");
     }
 
-    // a complicated function, returns true if a card is higher than another card, considering the trump
+    // returns true if a card is higher than another card, considering the trump
     bool operator<(const Card& lhs, const Card& rhs) {
         // all of the suits, in order from highest to lowest
 
@@ -268,7 +355,10 @@ namespace x45s {
         if ((lhs.getSuit() != trump && lhs.getSuit() != Suit::ACE_OF_HEARTS)
         && (rhs.getSuit() != trump && rhs.getSuit() != Suit::ACE_OF_HEARTS)) {
             int r = evaluateOffSuit(lhs, rhs);
-            // I have evaluateOffSuite throw an exception, but it is something to consider how to solve
+            // TODO(zinkelburger): Find a better way to resolve "neither card is a winner" situation
+            if (r == -1) {
+                return false;
+            }
             return r;
         }
 
@@ -359,14 +449,14 @@ namespace x45s {
         pack.clear();
         // the same code as the constructor
         // initalize 52 cards, Hearts = 1, Diamonds = 2, Clubs = 3, Spades = 4
-        for (int i = 1; i < 5; i++) {
+        for (int i = Suit::HEARTS; i <= Suit::SPADES; i++) {
             for (int j = 1; j < 14; j++) {
                 pack.push_back(Card(j, i));
             }
         }
-
-        // set the ace of hearts to -1 value
+        // set the ace of hearts to its special suit
         // fortunately this is the first card made (1,1)
+        pack[0].setSuit(Suit::ACE_OF_HEARTS);
         pack[0].setValue(-1);
     }
 
@@ -412,17 +502,25 @@ namespace x45s {
         return false;
     }
 
-    Deck& Deck::operator=(const Deck& other) {
-        if (this != &other) {
-            pack = other.pack;
-        }
+    // copy and swap baby
+    Deck& Deck::operator=(Deck other) {
+        std::swap(this->pack, other.pack);
         return *this;
     }
-    std::ostream& operator<< (std::ostream& out, const Deck& d) {
+
+    std::ostream& operator<<(std::ostream& out, const Deck& d) {
         for (int i = 0; i < 52; i++) {
             out << d;
             out << " ";
         }
         return out;
     }
-}
+
+    // Move assignment operator
+    Deck& Deck::operator=(Deck&& other) {
+        if (this != &other) {
+            pack = std::move(other.pack);
+        }
+        return *this;
+    }
+}  // namespace x45s

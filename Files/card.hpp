@@ -5,7 +5,7 @@
 // These cards are programmed to follow 45s rules for <, >, ==, etc.
 // Could store 1 card in 1 char to save space, each only needs values 1-13 and 0-4
 // That would be an evil monstrosity, but if I need to save space, it could be done...
-class Card{
+class Card {
     int value;
     int suit;
 

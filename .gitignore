@@ -1,2 +1,6 @@
 .vscode
+*.o
+Frank
 Files/*.o
+Files/tests
+Files/Frank

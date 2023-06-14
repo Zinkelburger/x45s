@@ -5,10 +5,10 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-#include <utility>
 #include "trumpGlobalVariable.hpp"
 #include "deck.hpp"
 #include "player.hpp"
+#include "suit.hpp"
 
 void x45s::shuffle() {
     deck.shuffle(10);
@@ -40,6 +40,12 @@ void x45s::deal_kiddie(int winner) {
 Card x45s::evaluate_trick(Card card1, Card card2, Card card3, Card card4) {
     // may be slower than like 15 if statements, but it is very readable
     std::vector<Card> c = {card1, card2, card3, card4};
+    return *std::max_element(c.begin(), c.end());
+}
+
+// evaluate the trick thrown by all four players. Returns the winning card
+Card x45s::evaluate_trick(std::vector<Card> c) {
+    // may be slower than like 15 if statements, but it is very readable
     return *std::max_element(c.begin(), c.end());
 }
 
@@ -102,16 +108,31 @@ bool x45s::dealBidAndFullFiveTricks() {
     int bidder = getBidder();
     setBid(bidAmount, bidder);
 
+    trump = getBidSuit();
+
     deal_kiddie(bidder);
     havePlayersDiscard();
 
     deal_players();
 
-    for (int i = 0; i < 5; i++) {
-        havePlayersPlayCards(bidder);
-    }
+    int firstPlayer = bidder;
+    // stores the card and the player who played it
+    std::pair<Card, int> highCard;
 
-    return determineIfWonBid();
+    // there are 5 tricks in each hand
+    for (int i = 0; i < 5; i++) {
+        std::pair<Card, int> winnerAndCard = havePlayersPlayCardsAndEvaluate(firstPlayer);
+        // player who won will lead the next trick
+        firstPlayer = winnerAndCard.second;
+
+        if (winnerAndCard.first > highCard.first || i == 0) {
+            highCard = winnerAndCard;
+        }
+    }
+    // give the high card bonus to the team
+    updateScores(highCard.second % 2);
+
+    return determineIfWonBidAndDeduct();
 }
 
 // sets both the bid amount and the player who bid
@@ -123,28 +144,31 @@ void x45s::setBid(int bid, int bidderNum) {
     bidderInitialScore = playerScores[bidder];
 }
 
+// gets the bids for each player and increments the dealer
 int x45s::getBidder() {
     // start the hand with a fresh bid history
     bidHistory.clear();
     // pair is <value, suit>
     std::pair<int, int> currentBid;
     std::pair<int, int> maxBid = {-2, -2};
-    int i = 0;
     int firstPlayer = -1;
-    for (auto& e : players) {
-        currentBid = e->getBid(bidHistory);
+
+    for (int i = playerDealing; i < playerDealing + 4; i++) {
+        currentBid = players[i % 4]->getBid(bidHistory);
         // .first is the value
-        bidHistory.push_back(currentBid.first);
-        if (currentBid.first > maxBid.first) {
-            maxBid = currentBid;
-            firstPlayer = i;
+        if (currentBid.first != 0) {
+            bidHistory.push_back(currentBid.first);
+            if (currentBid.first > maxBid.first) {
+                maxBid = currentBid;
+                firstPlayer = i;
+            }
         }
         i++;
     }
 
     // if no player bid, then bag the dealer
     if (maxBid.first <= 0) {
-        currentBid = players[playerDealing]->getBid(bidHistory);
+        currentBid = players[playerDealing]->bagged();
         firstPlayer = playerDealing;
     }
 
@@ -162,7 +186,7 @@ int x45s::getBidSuit() {
     return bidSuit;
 }
 
-bool x45s::determineIfWonBid() {
+bool x45s::determineIfWonBidAndDeduct() {
     // if (current score - the amount bid) >= to their score before they bid
     // then they made their bid
     if (playerScores[bidder] - bidAmount < bidderInitialScore) {
@@ -179,11 +203,46 @@ void x45s::reset() {
     deck.reset();
 }
 
+// returns a vector of the cards played by each player
 std::vector<Card> x45s::havePlayersPlayCards(int playerLeading) {
-    std::vector<Card> cardsPlayed;
-    for (int cardNum = playerLeading; cardNum < 4 + playerLeading; cardNum++) {
-        cardsPlayed.push_back((*(players[cardNum % 4])).playCard(cardsPlayed));
+    std::vector<Card> cardsPlayed(4);
+    cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
+    suitLed = cardsPlayed[playerLeading % 4].getSuit();
+    if (suitLed == Suit::ACE_OF_HEARTS) {
+        suitLed = Suit::HEARTS;
+    }
+    for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
+       cardsPlayed[playerLeading % 4] = (*(players[cardNum % 4])).playCard(cardsPlayed);
     }
     return cardsPlayed;
+}
+
+// have players play their cards and returns the Card & Player who won the trick
+std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
+    std::vector<Card> cardsPlayed(4);
+
+    cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
+    suitLed = cardsPlayed[playerLeading % 4].getSuit();
+
+    if (suitLed == Suit::ACE_OF_HEARTS) {
+        suitLed = Suit::HEARTS;
+    }
+    // calls playCard for the other 3 players and stores their card in an array
+    for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
+        cardsPlayed[playerLeading % 4] = (*(players[cardNum % 4])).playCard(cardsPlayed);
+    }
+
+    Card winningCard(evaluate_trick(cardsPlayed));
+    int winningPlayer;
+    if (winningCard == cardsPlayed[0]) {
+        winningPlayer = 0;
+    } else if (winningCard == cardsPlayed[1]) {
+        winningPlayer = 1;
+    } else if (winningCard == cardsPlayed[2]) {
+        winningPlayer = 2;
+    } else {
+        winningPlayer = 3;
+    }
+    return std::make_pair(winningCard, winningPlayer);
 }
 

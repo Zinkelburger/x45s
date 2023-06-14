@@ -16,6 +16,8 @@ The default constructor does not exist. You must pass four constructors to x45s 
 `x45s arbiter([](){ return new derivedPlayer1(); }, [](){ return new derivedPlayer2(); }, [](){ return new derivedPlayer3(); }, [](){ return new derivedPlayer4(); })`
 
 ### Methods
+`dealBidAndFullFiveTricks()` plays an entire hand, and 
+
 `deal_players` deals each player 5 cards.
 
 `shuffle` calls shuffle on the deck 10 times.
@@ -42,7 +44,7 @@ The default constructor does not exist. You must pass four constructors to x45s 
 
 `getBidSuit` returns the suit of the bid.
 
-`determineIfWonBid` returns true if the players won the bid, and false otherwise.
+`determineIfWonBidAndDeduct` returns true if the players won the bid, and false otherwise. It also deducts points if the player lost their bid. It should only be called once and the end of each hand (5 tricks).
 
 `getTeamScore` returns the score of the team number passed to it.
 
@@ -54,13 +56,15 @@ There is only a default constructor.
 Each player's hand is a vector of Cards. 
 
 ### Player's virtual functions
-discard (the player can choose to remove cards from their hand)
+`discard` (the player can choose to remove cards from their hand)
 
-getBid (the player can choose a bid. It is <value, suit>). The function is always called with a vector of ints, so that the player has the ability to consider other player's bids when they make their bid.
+`getBid` (the player can choose a bid. It is <value, suit>). The function is always called with a vector of ints, so that the player has the ability to consider other player's bids when they make their bid.
 
-playCard (the player can choose a card to play from their hand. They are passed the vector of cards played so far this hand)
+`bagged` The player dealt and was bagged. They are forced to bid. There are no parameters, as if you are bagged then no one else has bid.
 
-I have no memory of why I added `virtual Card takeCardInput(std::string inp) = 0;` or what it does.
+`playCard` (the player can choose a card to play from their hand. They are passed the vector of cards played so far this hand)
+
+`takeCardInput(std::string inp)` can be used for testing purposes, to give a player a predetermined hand
 
 ### Player's non virtual functions
 dealCard is called by x45s to push back cards to the hand.
@@ -117,4 +121,4 @@ getValue, getSuit, setValue, setSuit are all defined
 operator< and all logical operators are defined
 
 ## trumpGlobalVariable
-The program keeps track of trump and suitLed via global variables. Only main should update those.
+The program keeps track of trump and suitLed via global variables. Only x45s should update those.

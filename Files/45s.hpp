@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <utility>
 #include "trumpGlobalVariable.hpp"
 #include "deck.hpp"
 #include "player.hpp"
@@ -32,6 +33,7 @@ class x45s {
     void deal_kiddie(int winner);
     // evaluate the trick thrown all four players. Returns the winning card
     Card evaluate_trick(Card card1, Card card2, Card card3, Card card4);
+    Card evaluate_trick(std::vector<Card> c);
 
     // keep track of the scores. If someone gets 120 points, they win
     void updateScores(int player);
@@ -51,12 +53,15 @@ class x45s {
     // returns the suit of the bid won
     int getBidSuit();
 
-    bool determineIfWonBid();
+    bool determineIfWonBidAndDeduct();
     int getTeamScore(int player);
 
     bool dealBidAndFullFiveTricks();
 
+    // returns the cards the players played
     std::vector<Card> havePlayersPlayCards(int playerLeading);
+    // have players play their cards and returns the player who won the trick
+    std::pair<Card, int> havePlayersPlayCardsAndEvaluate(int playerLeading);
 
  private:
     Deck deck;
