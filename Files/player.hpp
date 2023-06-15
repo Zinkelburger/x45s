@@ -17,6 +17,7 @@ class Player {
     Player(Cards... cards) : hand{cards...} {}
     Player(std::vector<Card> inpHand) : hand(inpHand) {}
     Player(std::vector<Card>&& inpHand) : hand(inpHand) {}
+    virtual ~Player() {}
     // add the card to the player's hand
     void dealCard(Card c) {
         // Card is passed by value so I can simply do this

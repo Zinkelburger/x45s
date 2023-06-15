@@ -49,9 +49,13 @@ The default constructor does not exist. There are two ways to initialize a x45s 
 
 `getBidSuit` returns the suit of the bid.
 
+`int getHandSize(int playerNum)` returns the size of the player's hand.
+
 `determineIfWonBidAndDeduct` returns true if the players won the bid, and false otherwise. It also deducts points if the player lost their bid. It should only be called once at the end of each hand (5 tricks).
 
 `getTeamScore` returns the score of the team number passed to it.
+
+`getNumPlayers` returns the number of players playing the game. This should always be 4.
 
 `havePlayersPlayCards` takes the number of the player that is leading, and calls playCard on each of the players in the correct order. It keeps track of the cards played and passes this information to the `playCard` method.
 

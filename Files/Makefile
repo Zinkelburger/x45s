@@ -9,20 +9,27 @@ all: Frank lint tests
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $<
 
+testFiles/%.o: testFiles/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+Frank: 45s.o card.o deck.o main.o computer.o player.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
+
+# Rule for building the tests executable
+tests: 45s.o card.o deck.o player.o testFiles/testCard.o testFiles/testDeck.o testFiles/testX45s.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
+
 testCard.o: testFiles/testCard.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 testDeck.o: testFiles/testDeck.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-Frank: 45s.o card.o deck.o main.o computer.o player.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
-
-tests: 45s.o card.o deck.o player.o testCard.o testDeck.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
+testX45s.o: testFiles/testX45s.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
 lint:
 	cpplint *.cpp *.hpp
 
 clean:
-	rm *.o Frank tests
+	rm *.o Frank testFiles/*.o tests

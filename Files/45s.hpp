@@ -15,6 +15,7 @@ class x45s {
     x45s() = delete;
     x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
     std::function<Player*()> cp3, std::function<Player*()> cp4) : deck() {
+        initalizedPlayersWithNew = true;
         players.push_back(cp1());
         players.push_back(cp2());
         players.push_back(cp3());
@@ -28,6 +29,7 @@ class x45s {
     }
     // the user can manage the players if they want to
     x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
+        initalizedPlayersWithNew = false;
         players.push_back(p1);
         players.push_back(p2);
         players.push_back(p3);
@@ -38,6 +40,13 @@ class x45s {
         playerScores[1] = 0;
         // player 0 can deal first. This is incremented mod 4 after every deal
         playerDealing = 0;
+    }
+    ~x45s() {
+        if (initalizedPlayersWithNew) {
+            for (auto player : players) {
+                delete player;
+            }
+        }
     }
     void deal_players();
     void shuffle();
@@ -76,6 +85,12 @@ class x45s {
     // have players play their cards and returns the player who won the trick
     std::pair<Card, int> havePlayersPlayCardsAndEvaluate(int playerLeading);
 
+    int getHandSize(int playerNum) {
+        return players[playerNum]->getSize();
+    }
+    int getNumPlayers() {
+        return players.size();
+    }
  private:
     Deck deck;
     // Array of pointers to an abstract class
@@ -89,4 +104,5 @@ class x45s {
     int bidder;
     int bidderInitialScore;
     int playerDealing;
+    bool initalizedPlayersWithNew;
 };
