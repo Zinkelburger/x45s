@@ -55,7 +55,7 @@ The default constructor does not exist. There are two ways to initalize a x45s o
 `havePlayersPlayCards` takes the number of the player thas is leading, and calls playCard on each of the players in the correct order. It keeps track of the cards played, and passes this information to the `playCard` method.
 
 ## Player
-There is only a default constructor.
+There a default constructor, and a variadic constructor that takes Card arguments so you can give a player a predetermined hand for testing purposes.
 
 Each player's hand is a vector of Cards. 
 
@@ -67,8 +67,6 @@ Each player's hand is a vector of Cards.
 `bagged` The player dealt and was bagged. They are forced to bid. There are no parameters, as if you are bagged then no one else has bid.
 
 `playCard` (the player can choose a card to play from their hand. They are passed the vector of cards played so far this hand)
-
-`takeCardInput(std::string inp)` can be used for testing purposes, to give a player a predetermined hand
 
 ### Player's non virtual functions
 dealCard is called by x45s to push back cards to the hand.

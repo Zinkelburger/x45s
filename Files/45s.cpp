@@ -24,8 +24,7 @@ void x45s::deal_players() {
         }
     }
 }
-// ask for bids
-// deal the kiddie to the player who won the bid.
+// deals the kiddie to the player who won the bid.
 // Need to input the number of the player who won the bid
 void x45s::deal_kiddie(int winner) {
     if (winner < 0 || winner > 3) {
@@ -36,7 +35,8 @@ void x45s::deal_kiddie(int winner) {
         players[winner]->dealCard(deck.pop_back());
     }
 }
-// evaluate the trick thrown by all four players. Returns the winning card
+// evaluates the cards thrown by all four players. Returns the winning card
+// precondition: suit led and trump have been previously set
 Card x45s::evaluate_trick(Card card1, Card card2, Card card3, Card card4) {
     // may be slower than like 15 if statements, but it is very readable
     std::vector<Card> c = {card1, card2, card3, card4};

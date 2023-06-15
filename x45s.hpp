@@ -92,8 +92,9 @@ class Player {
     std::vector<Card> hand;
 
  public:
-    virtual Card takeCardInput(std::string inp) = 0;
     Player() {}
+    template <class... Cards>
+    Player(Cards... cards) : hand{cards...} {}
     // add the card to the player's hand
     void dealCard(Card c) {
         // Card is passed by value so I can simply do this
