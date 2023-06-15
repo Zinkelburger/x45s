@@ -10,10 +10,6 @@ class Deck {
     std::vector<Card> pack;
  public:
     Deck();
-    Deck(const Deck& other) : pack(other.pack) {}
-    Deck(Deck&& other) : pack(std::move(other.pack)) {}
-    Deck& operator=(Deck other);
-    Deck& operator=(Deck&& other);
     void shuffle();
     void shuffle(int times);
     Card pop_back();
@@ -24,4 +20,11 @@ class Deck {
     void removeCard(int value, int suit);
     bool containsCard(int value, int suit);
     friend std::ostream& operator<<(std::ostream& out, const Deck& d);
+    int getSize() {
+        return pack.size();
+    }
+    // returns a copy of the deck
+    std::vector<Card> getPack() {
+        return pack;
+    }
 };

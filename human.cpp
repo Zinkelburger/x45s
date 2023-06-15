@@ -54,14 +54,34 @@ std::pair<int, int> Human::getBid(const std::vector<int>& bidHistory) {
     }
 }
 
-std::pair<int, int> Human::bagged() {
+Suit::Suit Human::bagged() {
+    std::cout << "You have been bagged! You must bid\n";
+    std::cout << "\nEnter H, D, S, C (e.g. H for Hearts)\n";
+        char c;
+        do {
+            std::cout << "\nSuit: ";
+            std::cin >> c;
+        } while (!(c == 'H' || c == 'D' || c == 'S' || c == 'C'));
 
+        int suit;
+        switch (c) {
+            case 'H':
+                suit = Suit::HEARTS;
+                break;
+            case 'D':
+                suit = Suit::DIAMONDS;
+                break;
+            case 'S':
+                suit = Suit::SPADES;
+                break;
+            case 'C':
+                suit = Suit::CLUBS;
+                break;
+            default:
+                throw("How did you get here\n");
+        }
 }
 
-Card Human::playCard(std::vector<Card> cardsPlayedThisHand) {
-
-}
-
-Card Human::takeCardInput(std::string inp) {
+x45s::Card Human::playCard(std::vector<x45s::Card> cardsPlayedThisHand) {
 
 }

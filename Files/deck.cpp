@@ -19,6 +19,7 @@ Deck::Deck() {
     pack[0].setSuit(Suit::ACE_OF_HEARTS);
     pack[0].setValue(-1);
 }
+
 void Deck::shuffle() {
     // swap each index of the deck with a random index
     // Fischer-Yates
@@ -46,17 +47,21 @@ void Deck::shuffle(int times) {
 }
 
 Card Deck::pop_back() {
-    // I think std::move is overkill as a Card is cheap to copy
+    // I think std::move is overkill as a Card is cheap to copy.
+    // Probably the compiler optimizes it anyways...
     Card c(pack.back());
     pack.pop_back();
     return c;
 }
+
 Card Deck::peek_back() {
     return pack.back();
 }
+
 void Deck::push_back(Card c) {
     pack.push_back(c);
 }
+
 void Deck::reset() {
     pack.clear();
     // the same code as the constructor
@@ -114,24 +119,10 @@ bool Deck::containsCard(int value, int suit) {
     return false;
 }
 
-// copy and swap baby
-Deck& Deck::operator=(Deck other) {
-    std::swap(this->pack, other.pack);
-    return *this;
-}
-
 std::ostream& operator<<(std::ostream& out, const Deck& d) {
     for (int i = 0; i < 52; i++) {
         out << d;
         out << " ";
     }
     return out;
-}
-
-// Move assignment operator
-Deck& Deck::operator=(Deck&& other) {
-    if (this != &other) {
-        pack = std::move(other.pack);
-    }
-    return *this;
 }

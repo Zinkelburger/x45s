@@ -102,6 +102,7 @@ int x45s::getBidAmount() {
     return bidAmount;
 }
 
+// returns the player who bid and if they won the bid or not
 std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
     deal_players();
 
@@ -150,11 +151,13 @@ int x45s::getBidder() {
     // start the hand with a fresh bid history
     bidHistory.clear();
     // pair is <value, suit>
-    std::pair<int, int> currentBid;
-    std::pair<int, int> maxBid = {-2, -2};
+    std::pair<int, Suit::Suit> currentBid;
+    // initalize maxBid to something small, so it is replaced immediately
+    std::pair<int, Suit::Suit> maxBid = {INT32_MIN, Suit::ACE_OF_HEARTS};
     int firstPlayer = -1;
 
-    for (int i = playerDealing; i < playerDealing + 4; i++) {
+    // the player dealing bids last and can possiblly be bagged
+    for (int i = playerDealing + 1; i < playerDealing + 4; i++) {
         currentBid = players[i % 4]->getBid(bidHistory);
         // .first is the value
         if (currentBid.first != 0) {
@@ -164,13 +167,22 @@ int x45s::getBidder() {
                 firstPlayer = i;
             }
         }
-        i++;
     }
 
     // if no player bid, then bag the dealer
     if (maxBid.first <= 0) {
-        currentBid = players[playerDealing]->bagged();
+        currentBid.second = players[playerDealing]->bagged();
         firstPlayer = playerDealing;
+    } else {
+        currentBid = players[playerDealing]->getBid(bidHistory);
+        // .first is the value
+        if (currentBid.first != 0) {
+            bidHistory.push_back(currentBid.first);
+            if (currentBid.first > maxBid.first) {
+                maxBid = currentBid;
+                firstPlayer = playerDealing;
+            }
+        }
     }
 
     // increment the player dealing mod 4

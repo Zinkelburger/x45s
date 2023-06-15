@@ -52,10 +52,6 @@ ostream& operator<<(ostream& out, const Card& c) {
     }
     return out;
 }
-istream& operator>>(istream& in, const Card& c) {
-    throw("Function not implemented yet");
-    return in;
-}
 
 // a helper function for operator<.
 // Returns 1 (true) if the left card is smaller than the right card, and 0 if false
