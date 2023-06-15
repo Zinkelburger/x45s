@@ -102,7 +102,7 @@ int x45s::getBidAmount() {
     return bidAmount;
 }
 
-bool x45s::dealBidAndFullFiveTricks() {
+std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
     deal_players();
 
     int bidder = getBidder();
@@ -132,7 +132,8 @@ bool x45s::dealBidAndFullFiveTricks() {
     // give the high card bonus to the team
     updateScores(highCard.second % 2);
 
-    return determineIfWonBidAndDeduct();
+ 
+    return std::make_pair(bidder, determineIfWonBidAndDeduct());
 }
 
 // sets both the bid amount and the player who bid

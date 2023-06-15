@@ -11,12 +11,16 @@ There is a 45s class, a card class, a deck class, and an abstract Player class. 
 ### Description
 Controls the game. Holds pointers to the 4 players, a deck, a discardDeck to store the cards the players play, the scores of both teams, the amount bid, the suit bid, the bidder (aka the player who bid), the initial score of the bidder (used to calculate if the bidder made their bid or not), and the player who dealt the hand.
 
-The default constructor does not exist. You must pass four constructors to x45s when you call it. This allows x45s to manage the memory for the players, removing the user from forgetting to free the memory. It can be called like example:
+The default constructor does not exist. There are two ways to initalize a x45s object.
+
+1. You can initalize a derived player object with `new`, upcast it, and pass 4 Player pointers to the x45s constructor. You are responsible for managing the Players' memoery.
+
+2. You can pass four constructors to x45s when you call it. This allows x45s to manage the memory for the players. The constructor can be called like:
 
 `x45s arbiter([](){ return new derivedPlayer1(); }, [](){ return new derivedPlayer2(); }, [](){ return new derivedPlayer3(); }, [](){ return new derivedPlayer4(); })`
 
 ### Methods
-`dealBidAndFullFiveTricks()` plays an entire hand, and 
+`dealBidAndFullFiveTricks()` deals to the players, has the players bid, plays an entire hand (5 tricks), and returns a pair of <int, bool>. The int is the bidder, and the bool is whether they won or not.
 
 `deal_players` deals each player 5 cards.
 
@@ -121,4 +125,4 @@ getValue, getSuit, setValue, setSuit are all defined
 operator< and all logical operators are defined
 
 ## trumpGlobalVariable
-The program keeps track of trump and suitLed via global variables. Only x45s should update those.
+The program keeps track of the trump and suitLed via global variables. Only x45s should update them.

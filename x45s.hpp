@@ -173,7 +173,7 @@ class x45s {
     bool determineIfWonBidAndDeduct();
     int getTeamScore(int player);
 
-    bool dealBidAndFullFiveTricks();
+    std::pair<int, bool> dealBidAndFullFiveTricks();
 
     // returns the cards the players played
     std::vector<Card> havePlayersPlayCards(int playerLeading);

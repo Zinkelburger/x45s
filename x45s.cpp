@@ -108,7 +108,7 @@ namespace x45s {
         return bidAmount;
     }
 
-    bool x45s::dealBidAndFullFiveTricks() {
+    std::pair<int, bool> dealBidAndFullFiveTricks() {
         deal_players();
 
         int bidder = getBidder();
@@ -138,7 +138,7 @@ namespace x45s {
         // give the high card bonus to the team
         updateScores(highCard.second % 2);
 
-        return determineIfWonBidAndDeduct();
+        return std::make_pair(bidder, determineIfWonBidAndDeduct());
     }
 
     // sets both the bid amount and the player who bid

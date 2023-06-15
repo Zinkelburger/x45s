@@ -26,12 +26,25 @@ class x45s {
         // player 0 can deal first. This is incremented mod 4 after every deal
         playerDealing = 0;
     }
+    // the user can manage the players if they want to
+    x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
+        players.push_back(p1);
+        players.push_back(p2);
+        players.push_back(p3);
+        players.push_back(p4);
+
+        // initalize both the player scores to 0
+        playerScores[0] = 0;
+        playerScores[1] = 0;
+        // player 0 can deal first. This is incremented mod 4 after every deal
+        playerDealing = 0;
+    }
     void deal_players();
     void shuffle();
     void reset();
     // deal the kiddie to the player who won the bid. (0-3)
     void deal_kiddie(int winner);
-    // evaluate the trick thrown all four players. Returns the winning card
+    // evaluate the trick thrown by all four players. Returns the winning card
     Card evaluate_trick(Card card1, Card card2, Card card3, Card card4);
     Card evaluate_trick(std::vector<Card> c);
 
@@ -56,7 +69,7 @@ class x45s {
     bool determineIfWonBidAndDeduct();
     int getTeamScore(int player);
 
-    bool dealBidAndFullFiveTricks();
+    std::pair<int, bool> dealBidAndFullFiveTricks();
 
     // returns the cards the players played
     std::vector<Card> havePlayersPlayCards(int playerLeading);
