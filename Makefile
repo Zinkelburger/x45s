@@ -8,7 +8,7 @@ all: Frank lint
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $<
 
-Frank: x45s.o main.o
+Frank: x45s.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
 
 lint:

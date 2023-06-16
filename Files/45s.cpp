@@ -10,6 +10,35 @@
 #include "player.hpp"
 #include "suit.hpp"
 
+x45s::x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
+    initalizedPlayersWithNew = false;
+    players.push_back(p1);
+    players.push_back(p2);
+    players.push_back(p3);
+    players.push_back(p4);
+
+    // initalize both the player scores to 0
+    playerScores[0] = 0;
+    playerScores[1] = 0;
+    // player 0 can deal first. This is incremented mod 4 after every deal
+    playerDealing = 0;
+}
+
+x45s::x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
+    std::function<Player*()> cp3, std::function<Player*()> cp4) : deck() {
+    initalizedPlayersWithNew = true;
+    players.push_back(cp1());
+    players.push_back(cp2());
+    players.push_back(cp3());
+    players.push_back(cp4());
+
+    // initalize both the player scores to 0
+    playerScores[0] = 0;
+    playerScores[1] = 0;
+    // player 0 can deal first. This is incremented mod 4 after every deal
+    playerDealing = 0;
+}
+
 void x45s::shuffle() {
     deck.shuffle(10);
 }
@@ -133,7 +162,6 @@ std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
     // give the high card bonus to the team
     updateScores(highCard.second % 2);
 
- 
     return std::make_pair(bidder, determineIfWonBidAndDeduct());
 }
 
@@ -195,7 +223,7 @@ int x45s::getBidder() {
     return firstPlayer;
 }
 
-int x45s::getBidSuit() {
+Suit::Suit x45s::getBidSuit() {
     return bidSuit;
 }
 

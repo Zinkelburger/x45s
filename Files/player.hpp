@@ -14,9 +14,8 @@ class Player {
  public:
     Player() {}
     template <class... Cards>
-    Player(Cards... cards) : hand{cards...} {}
-    Player(std::vector<Card> inpHand) : hand(inpHand) {}
-    Player(std::vector<Card>&& inpHand) : hand(inpHand) {}
+    explicit Player(Cards... cards) : hand{cards...} {}
+    explicit Player(std::vector<Card> inpHand) : hand(inpHand) {}
     virtual ~Player() {}
     // add the card to the player's hand
     void dealCard(Card c) {
@@ -26,7 +25,9 @@ class Player {
     virtual void discard() = 0;
     // pair is bidAmount, suit
     virtual std::pair<int, Suit::Suit> getBid(const std::vector<int>& bidHistory) = 0;
+    // the player is forced to bid
     virtual Suit::Suit bagged() = 0;
+    // should return the card you want to play and remove it from your hand
     virtual Card playCard(std::vector<Card> cardsPlayedThisHand) = 0;
     int getSize() {
         return hand.size();
@@ -40,6 +41,7 @@ class Player {
         }
         std::cout << "\n";
     }
+    // adds the hand and a trailing '\n'
     std::ostream& printHand(std::ostream& out) {
         for (auto& c : hand) {
             out << c << " ";

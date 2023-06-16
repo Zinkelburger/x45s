@@ -31,15 +31,12 @@ class Card {
     int suit;
 
  public:
-    // Comparison operators require knowledge of the current trump suit
-
     // I have a default constructor so I can make pairs of cards
     Card() : value(-1000), suit(-1000) {}
     // value, suit
     Card(int inpValue, int inpSuit) : value(inpValue), suit(inpSuit) {}
 
     friend std::ostream& operator<<(std::ostream& out, const Card& c);
-    friend std::istream& operator>>(std::istream& in, Card& c);
 
     int getValue() const {
         return value;
@@ -70,10 +67,6 @@ class Deck {
     std::vector<Card> pack;
  public:
     Deck();
-    Deck(const Deck& other) : pack(other.pack) {}
-    Deck(Deck&& other) : pack(std::move(other.pack)) {}
-    Deck& operator=(Deck other);
-    Deck& operator=(Deck&& other);
     void shuffle();
     void shuffle(int times);
     Card pop_back();
@@ -84,9 +77,17 @@ class Deck {
     void removeCard(int value, int suit);
     bool containsCard(int value, int suit);
     friend std::ostream& operator<<(std::ostream& out, const Deck& d);
+    int getSize() {
+        return pack.size();
+    }
+    // returns a copy of the deck
+    std::vector<Card> getPack() {
+        return pack;
+    }
 };
 
-// player is designed to be overriden by Computer and Human
+
+// player is designed to be overriden by the user
 class Player {
  protected:
     std::vector<Card> hand;
@@ -94,7 +95,9 @@ class Player {
  public:
     Player() {}
     template <class... Cards>
-    Player(Cards... cards) : hand{cards...} {}
+    explicit Player(Cards... cards) : hand{cards...} {}
+    explicit Player(std::vector<Card> inpHand) : hand(inpHand) {}
+    virtual ~Player() {}
     // add the card to the player's hand
     void dealCard(Card c) {
         // Card is passed by value so I can simply do this
@@ -102,8 +105,10 @@ class Player {
     }
     virtual void discard() = 0;
     // pair is bidAmount, suit
-    virtual std::pair<int, int> getBid(const std::vector<int>& bidHistory) = 0;
-    virtual std::pair<int, int> bagged() = 0;
+    virtual std::pair<int, Suit::Suit> getBid(const std::vector<int>& bidHistory) = 0;
+    // the player is forced to bid
+    virtual Suit::Suit bagged() = 0;
+    // should return the card you want to play and remove it from your hand
     virtual Card playCard(std::vector<Card> cardsPlayedThisHand) = 0;
     int getSize() {
         return hand.size();
@@ -117,6 +122,7 @@ class Player {
         }
         std::cout << "\n";
     }
+    // adds the hand and a trailing '\n'
     std::ostream& printHand(std::ostream& out) {
         for (auto& c : hand) {
             out << c << " ";
@@ -132,24 +138,22 @@ class x45s {
     // no default constructor, have to give it the players at initalization
     x45s() = delete;
     x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
-    std::function<Player*()> cp3, std::function<Player*()> cp4) : deck() {
-        players.push_back(cp1());
-        players.push_back(cp2());
-        players.push_back(cp3());
-        players.push_back(cp4());
-
-        // initalize both the player scores to 0
-        playerScores[0] = 0;
-        playerScores[1] = 0;
-        // player 0 can deal first. This is incremented mod 4 after every deal
-        playerDealing = 0;
+    std::function<Player*()> cp3, std::function<Player*()> cp4);
+    // the user can manage the players' memory if they want to
+    x45s(Player* p1, Player* p2, Player* p3, Player* p4);
+    ~x45s() {
+        if (initalizedPlayersWithNew) {
+            for (auto player : players) {
+                delete player;
+            }
+        }
     }
     void deal_players();
     void shuffle();
     void reset();
     // deal the kiddie to the player who won the bid. (0-3)
     void deal_kiddie(int winner);
-    // evaluate the trick thrown all four players. Returns the winning card
+    // evaluate the trick thrown by all four players. Returns the winning card
     Card evaluate_trick(Card card1, Card card2, Card card3, Card card4);
     Card evaluate_trick(std::vector<Card> c);
 
@@ -169,7 +173,17 @@ class x45s {
     // Calls the getBid method & returns the player who won the bid (0, 1, 2, 3)
     int getBidder();
     // returns the suit of the bid won
-    int getBidSuit();
+    Suit::Suit getBidSuit();
+
+    int getHandSize(int playerNum) {
+        return players[playerNum]->getSize();
+    }
+    int getNumPlayers() {
+        return players.size();
+    }
+    const Player& getPlayer(int playerNum) {
+        return *(players[playerNum]);
+    }
 
     bool determineIfWonBidAndDeduct();
     int getTeamScore(int player);
@@ -190,9 +204,10 @@ class x45s {
     // only two player scores because there are two teams
     int playerScores[2];
     int bidAmount;
-    int bidSuit;
+    Suit::Suit bidSuit;
     int bidder;
     int bidderInitialScore;
     int playerDealing;
+    bool initalizedPlayersWithNew;
 };
 }  // namespace x45s

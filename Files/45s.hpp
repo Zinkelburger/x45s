@@ -14,33 +14,9 @@ class x45s {
     // no default constructor, have to give it the players at initalization
     x45s() = delete;
     x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
-    std::function<Player*()> cp3, std::function<Player*()> cp4) : deck() {
-        initalizedPlayersWithNew = true;
-        players.push_back(cp1());
-        players.push_back(cp2());
-        players.push_back(cp3());
-        players.push_back(cp4());
-
-        // initalize both the player scores to 0
-        playerScores[0] = 0;
-        playerScores[1] = 0;
-        // player 0 can deal first. This is incremented mod 4 after every deal
-        playerDealing = 0;
-    }
-    // the user can manage the players if they want to
-    x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
-        initalizedPlayersWithNew = false;
-        players.push_back(p1);
-        players.push_back(p2);
-        players.push_back(p3);
-        players.push_back(p4);
-
-        // initalize both the player scores to 0
-        playerScores[0] = 0;
-        playerScores[1] = 0;
-        // player 0 can deal first. This is incremented mod 4 after every deal
-        playerDealing = 0;
-    }
+    std::function<Player*()> cp3, std::function<Player*()> cp4);
+    // the user can manage the players' memory if they want to
+    x45s(Player* p1, Player* p2, Player* p3, Player* p4);
     ~x45s() {
         if (initalizedPlayersWithNew) {
             for (auto player : players) {
@@ -73,7 +49,17 @@ class x45s {
     // Calls the getBid method & returns the player who won the bid (0, 1, 2, 3)
     int getBidder();
     // returns the suit of the bid won
-    int getBidSuit();
+    Suit::Suit getBidSuit();
+
+    int getHandSize(int playerNum) {
+        return players[playerNum]->getSize();
+    }
+    int getNumPlayers() {
+        return players.size();
+    }
+    const Player& getPlayer(int playerNum) {
+        return *(players[playerNum]);
+    }
 
     bool determineIfWonBidAndDeduct();
     int getTeamScore(int player);
@@ -85,12 +71,6 @@ class x45s {
     // have players play their cards and returns the player who won the trick
     std::pair<Card, int> havePlayersPlayCardsAndEvaluate(int playerLeading);
 
-    int getHandSize(int playerNum) {
-        return players[playerNum]->getSize();
-    }
-    int getNumPlayers() {
-        return players.size();
-    }
  private:
     Deck deck;
     // Array of pointers to an abstract class
@@ -100,7 +80,7 @@ class x45s {
     // only two player scores because there are two teams
     int playerScores[2];
     int bidAmount;
-    int bidSuit;
+    Suit::Suit bidSuit;
     int bidder;
     int bidderInitialScore;
     int playerDealing;
