@@ -22,6 +22,7 @@ class Player {
         // Card is passed by value so I can simply do this
         hand.push_back(c);
     }
+    // the player must keep at least 1 card
     virtual void discard() = 0;
     // pair is bidAmount, suit
     virtual std::pair<int, Suit::Suit> getBid(const std::vector<int>& bidHistory) = 0;

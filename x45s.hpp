@@ -103,7 +103,10 @@ class Player {
         // Card is passed by value so I can simply do this
         hand.push_back(c);
     }
+    // called after the player has lost the bid. They must keep 1 card
     virtual void discard() = 0;
+    // called after the player is dealt the kiddie. They must keep 5 cards
+    virtual void discardKiddie() = 0;
     // pair is bidAmount, suit
     virtual std::pair<int, Suit::Suit> getBid(const std::vector<int>& bidHistory) = 0;
     // the player is forced to bid

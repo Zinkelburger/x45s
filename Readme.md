@@ -67,13 +67,13 @@ There is a default constructor, a variadic constructor that takes as many Cards 
 Each player's hand is a vector of Cards. 
 
 ### Player's virtual functions
-`discard` (the player can choose to remove cards from their hand)
+`discard` The player can choose to remove cards from their hand, but must keep at least 1.
 
-`getBid` (the player can choose a bid. It is <value, suit>). The function is always called with a vector of ints, so that the player can consider other players' bids when they make their bid.
+`getBid` The player can choose a bid. It is <value, suit>. The function is always called with a vector of ints, so that the player can consider other players' bids when they make their bid.
 
 `bagged` The player dealt and was bagged. They are forced to bid. There are no parameters, as if you are bagged then no one else has bid.
 
-`playCard` (the player can choose a card to play from their hand. They are passed the vector of cards played so far this hand)
+`playCard` the player can choose a card to play from their hand. They are passed the vector of cards played so far this hand
 
 ### Player's non-virtual functions
 dealCard is called by x45s to push back cards to the hand.
