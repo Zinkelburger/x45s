@@ -149,8 +149,6 @@ std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
     deal_kiddie(bidder);
     havePlayersDiscard();
 
-    players[bidder]->discardKiddie();
-
     deal_players();
 
     int firstPlayer = bidder;
