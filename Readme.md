@@ -125,7 +125,10 @@ Copy constructor and assignment operator are implicitly defined.
 
 getValue, getSuit, setValue, setSuit are all defined
 
-operator< and all logical operators are defined
+operator< and all logical operators are defined. The comparison operators require the global variables `trump` and `suitLed` to be set, or they will not be able to work. 
+
+There are other comparison functions where you can pass a local variable instead of setting a global variable
+`bool Card::lessThan(const Card& other, int inpSuit, int inpTrump)` is a member function.
 
 ## trumpGlobalVariable
 The program keeps track of the trump and suitLed via global variables. Only x45s should update them.

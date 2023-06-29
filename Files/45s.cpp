@@ -10,6 +10,9 @@
 #include "player.hpp"
 #include "suit.hpp"
 
+int suitLed = INT32_MIN;
+int trump = INT32_MIN;
+
 x45s::x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
     initalizedPlayersWithNew = false;
     players.push_back(p1);
@@ -145,7 +148,7 @@ std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
 
     deal_players();
 
-    int firstPlayer = bidder;
+    int firstPlayer = bidder + 1;
     // stores the card and the player who played it
     std::pair<Card, int> highCard;
 
@@ -242,12 +245,16 @@ void x45s::reset() {
         e->resetHand();
     }
     deck.reset();
+    suitLed = INT32_MIN;
+    trump = INT32_MIN;
 }
 
 // returns a vector of the cards played by each player
+// precondition: playerLeading is set to the dealer + 1
 std::vector<Card> x45s::havePlayersPlayCards(int playerLeading) {
     std::vector<Card> cardsPlayed(4);
     cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
+
     suitLed = cardsPlayed[playerLeading % 4].getSuit();
     if (suitLed == Suit::ACE_OF_HEARTS) {
         suitLed = trump;
@@ -259,6 +266,7 @@ std::vector<Card> x45s::havePlayersPlayCards(int playerLeading) {
 }
 
 // have players play their cards and returns the Card & Player who won the trick
+// precondition: playerLeading is set to the dealer + 1
 std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
     std::vector<Card> cardsPlayed(4);
 

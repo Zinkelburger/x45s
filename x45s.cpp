@@ -7,8 +7,8 @@
 #include <vector>
 #include <iostream>
 
-int trump = -1;
-int suitLed = -1;
+int suitLed = INT32_MIN;
+int trump = INT32_MIN;
 
 namespace x45s {
     using std::to_string;
@@ -151,7 +151,7 @@ std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
 
     deal_players();
 
-    int firstPlayer = bidder;
+    int firstPlayer = bidder + 1;
     // stores the card and the player who played it
     std::pair<Card, int> highCard;
 
@@ -344,6 +344,9 @@ std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
     // Returns 1 (true) if the left card is smaller than the right card, and 0 if false
     // Precondition: neither of the cards is trump (checked by operator<)
     int evaluateOffSuit(const Card& lhs, const Card& rhs) {
+        if (suitLed == INT32_MIN) {
+            throw std::invalid_argument("Suit Led is not initalized!");
+        }
         // neither card is suitLed. They will both lose
         // and there is no way to directly compare them.
         if (lhs.getSuit() != suitLed && rhs.getSuit() != suitLed) {
@@ -382,6 +385,9 @@ std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
     // returns true if a card is higher than another card, considering the trump
     bool operator<(const Card& lhs, const Card& rhs) {
         // all of the suits, in order from highest to lowest
+        if (trump == INT32_MIN) {
+            throw std::invalid_argument("Trump is not initalized!");
+        }
 
         // hearts has a -10 at the end so all the arrays can be the same length
         // -1 represents the ace of hearts
@@ -431,6 +437,108 @@ std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
         // left side is trump and right is not
         } else if ((rhs.getSuit() != trump && rhs.getSuit() != Suit::ACE_OF_HEARTS)
         && (lhs.getSuit() == trump || lhs.getSuit() == Suit::ACE_OF_HEARTS)) {
+            return false;
+        }
+        throw("How the hell did you get here");
+    }
+
+    // a comparison function that does not use global variables
+    // so you can pass it the suitLed and Trump without changing them globally
+    bool Card::lessThan(const Card& other, int inpSuit, int inpTrump) {
+        if (!(inpTrump == 0 || inpTrump == 1 || inpTrump == 2 || inpTrump == 3)) {
+            throw std::invalid_argument("inpTrump is not valid!");
+        }
+        // all of the suits, in order from highest to lowest
+
+        // hearts has a -10 at the end so all the arrays can be the same length
+        // -1 represents the ace of hearts
+        int hearts[14] = {5, 11, -1, 13, 12, 10, 9, 8, 7, 6, 4, 3, 2, -10};
+        int diamonds[14] = {5, 11, -1, 1, 13, 12, 10, 9, 8, 7, 6, 4, 3, 2};
+        int clubsAndSpades[14] = {5, 11, -1, 1, 13, 12, 2, 3, 4, 6, 7, 8, 9, 10};
+
+        // order is set to whatever array we need above
+        int* order;
+
+        // neither card is trump
+        if ((other.getSuit() != inpTrump && other.getSuit() != Suit::ACE_OF_HEARTS)
+        && (this->getSuit() != inpTrump && this->getSuit() != Suit::ACE_OF_HEARTS)) {
+            int r = this->evaluateOffSuit(other, inpSuit);
+            // TODO(zinkelburger): Find a better way to resolve "neither card is a winner" situation
+            if (r == -1) {
+                return false;
+            }
+            return r;
+        }
+
+        // otherwise comparison is easy, just loop through the order until the highest card is found
+        if (inpTrump == Suit::HEARTS) {
+            order = hearts;
+        } else if (inpTrump == Suit::DIAMONDS) {
+            order = diamonds;
+        } else {
+            // compiler wants to make sure order is initalized, so I put it in an else
+            order = clubsAndSpades;
+        }
+
+        // we know at least one of the cards is trump by this point
+        // both cards are trump
+        if ((other.getSuit() == inpTrump || other.getSuit() == Suit::ACE_OF_HEARTS)
+        && (this->getSuit() == inpTrump || this->getSuit() == Suit::ACE_OF_HEARTS)) {
+            for (int i = 0; i < 14; i++) {
+                if (this->getValue() == order[i]) {
+                    return true;
+                } else if (other.getValue() == order[i]) {
+                    return false;
+                }
+            }
+        // right side is trump and left is not
+        } else if ((this->getSuit() == inpTrump || this->getSuit() == Suit::ACE_OF_HEARTS)
+        && (other.getSuit() != inpTrump && other.getSuit() != Suit::ACE_OF_HEARTS)) {
+            return true;
+        // left side is trump and right is not
+        } else if ((this->getSuit() != inpTrump && this->getSuit() != Suit::ACE_OF_HEARTS)
+        && (other.getSuit() == inpTrump || other.getSuit() == Suit::ACE_OF_HEARTS)) {
+            return false;
+        }
+        throw("How the hell did you get here");
+    }
+
+    // overloaded, this one takes a inpSuit
+    // Returns 1 (true) if the left card is smaller than the right card, and 0 if false
+    int Card::evaluateOffSuit(const Card& other, int inpSuit) {
+        if (!(inpSuit == 0 || inpSuit == 1 || inpSuit == 2 || inpSuit == 3)) {
+            throw std::invalid_argument("suitLed is not valid!");
+        }
+
+        // neither card is inpSuit. They will both lose, and there is no way to directly compare them.
+        if (other.getSuit() != inpSuit && this->getSuit() != inpSuit) {
+            return -1;
+        }
+
+        // now we know one of the cards is of inpSuit
+        int heartsAndDiamonds[14] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+        int clubsAndSpades[14] = {13, 12, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        int* order;
+        if (inpSuit == Suit::HEARTS || inpSuit == Suit::DIAMONDS) {
+            order = heartsAndDiamonds;
+        } else {
+            order = clubsAndSpades;
+        }
+
+        // both cards are inpSuit
+        if (other.getSuit() == inpSuit && this->getSuit() == inpSuit) {
+            for (int i = 0; i < 14; i++) {
+                if (this->getValue() == order[i]) {
+                    return true;
+                } else if (other.getValue() == order[i]) {
+                    return false;
+                }
+            }
+        // right side is inpSuit and left is not
+        } else if (this->getSuit() == inpSuit && other.getSuit() != inpSuit) {
+            return true;
+        // left side is inpSuit and right is not
+        } else if (this->getSuit() != inpSuit && other.getSuit() == inpSuit) {
             return false;
         }
         throw("How the hell did you get here");

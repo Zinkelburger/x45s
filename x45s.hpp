@@ -50,6 +50,15 @@ class Card {
     void setValue(int inpValue) {
         value = inpValue;
     }
+
+    // a comparison function that does not use global variables
+    // so you can pass it the suitLed and trump without changing them globally
+    bool Card::lessThan(const Card& other, int inpSuit, int inpTrump);
+
+    // overloaded, this one takes a suitLed
+    // Returns 1 (true) if the left card is smaller than the right card, and 0 if false
+    // Precondition: suitLed is initalized and neither of the cards is trump (checked by operator<)
+    int Card::evaluateOffSuit(const Card& other, int suitLed);
 };
 // inspired from https://stackoverflow.com/questions/4421706/what-are-the-basic-rules-and-idioms-for-operator-overloading
 // operator< is not inline because it is a large function
