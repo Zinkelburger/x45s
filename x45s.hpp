@@ -110,7 +110,7 @@ class Player {
     // the player is forced to bid
     virtual Suit::Suit bagged() = 0;
     // should return the card you want to play and remove it from your hand
-    virtual Card playCard(std::vector<Card> cardsPlayedThisHand) = 0;
+    virtual Card playCard(const std::vector<Card>& cardsPlayedThisHand) = 0;
     int getSize() {
         return hand.size();
     }

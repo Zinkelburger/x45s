@@ -256,7 +256,7 @@ std::vector<Card> x45s::havePlayersPlayCards(int playerLeading) {
     cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
     suitLed = cardsPlayed[playerLeading % 4].getSuit();
     if (suitLed == Suit::ACE_OF_HEARTS) {
-        suitLed = Suit::HEARTS;
+        suitLed = trump;
     }
     for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
        cardsPlayed[playerLeading % 4] = (*(players[cardNum % 4])).playCard(cardsPlayed);
@@ -272,7 +272,7 @@ std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
     suitLed = cardsPlayed[playerLeading % 4].getSuit();
 
     if (suitLed == Suit::ACE_OF_HEARTS) {
-        suitLed = Suit::HEARTS;
+        suitLed = trump;
     }
     // calls playCard for the other 3 players and stores their card in an array
     for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
