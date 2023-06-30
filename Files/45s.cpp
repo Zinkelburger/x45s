@@ -5,13 +5,10 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-#include "trumpGlobalVariable.hpp"
+#include "gameState.hpp"
 #include "deck.hpp"
 #include "player.hpp"
 #include "suit.hpp"
-
-int suitLed = INT32_MIN;
-int trump = INT32_MIN;
 
 x45s::x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
     initalizedPlayersWithNew = false;
@@ -141,7 +138,8 @@ std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
     int bidder = getBidder();
     setBid(bidAmount, bidder);
 
-    trump = getBidSuit();
+    GameState* gameState = GameState::getInstance();
+    gameState->setTrump(getBidSuit());
 
     deal_kiddie(bidder);
     havePlayersDiscard();
@@ -245,8 +243,9 @@ void x45s::reset() {
         e->resetHand();
     }
     deck.reset();
-    suitLed = INT32_MIN;
-    trump = INT32_MIN;
+    GameState* gameState = GameState::getInstance();
+    gameState->unsetSuitLedInitalized();
+    gameState->unsetTrumpInitalized();
 }
 
 // returns a vector of the cards played by each player
@@ -255,9 +254,11 @@ std::vector<Card> x45s::havePlayersPlayCards(int playerLeading) {
     std::vector<Card> cardsPlayed(4);
     cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
 
-    suitLed = cardsPlayed[playerLeading % 4].getSuit();
-    if (suitLed == Suit::ACE_OF_HEARTS) {
-        suitLed = trump;
+    GameState* gameState = GameState::getInstance();
+
+    gameState->setSuitLed(cardsPlayed[playerLeading % 4].getSuit());
+    if (gameState->getSuitLed() == Suit::ACE_OF_HEARTS) {
+        gameState->setSuitLed(gameState->getTrump());
     }
     for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
        cardsPlayed[playerLeading % 4] = (*(players[cardNum % 4])).playCard(cardsPlayed);
@@ -271,10 +272,12 @@ std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
     std::vector<Card> cardsPlayed(4);
 
     cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
-    suitLed = cardsPlayed[playerLeading % 4].getSuit();
+    
+    GameState* gameState = GameState::getInstance();
+    gameState->setSuitLed(cardsPlayed[playerLeading % 4].getSuit());
 
-    if (suitLed == Suit::ACE_OF_HEARTS) {
-        suitLed = trump;
+    if (gameState->getSuitLed() == Suit::ACE_OF_HEARTS) {
+        gameState->setSuitLed(gameState->getTrump());
     }
     // calls playCard for the other 3 players and stores their card in an array
     for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {

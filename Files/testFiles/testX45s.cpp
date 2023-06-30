@@ -5,6 +5,7 @@
 #include "../card.hpp"
 #include "../suit.hpp"
 #include "../45s.hpp"
+#include "../gameState.hpp"
 #include <vector>
 #include <algorithm>
 
@@ -17,7 +18,7 @@ public:
     Suit::Suit bagged() override {
         return Suit::SPADES;
     }
-    Card playCard(std::vector<Card> cardsPlayedThisHand) override {
+    Card playCard(const std::vector<Card>& cardsPlayedThisHand) override {
         return hand.back();
     }
 };
@@ -33,7 +34,7 @@ public:
     Suit::Suit bagged() override {
         return Suit::CLUBS;
     }
-    Card playCard(std::vector<Card> cardsPlayedThisHand) override {
+    Card playCard(const std::vector<Card>& cardsPlayedThisHand) override {
         return hand.back();
     }
 };

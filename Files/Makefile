@@ -12,11 +12,10 @@ all: Frank lint tests
 testFiles/%.o: testFiles/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-Frank: 45s.o card.o deck.o main.o computer.o player.o
+Frank: 45s.o card.o deck.o main.o computer.o player.o gameState.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
 
-# Rule for building the tests executable
-tests: 45s.o card.o deck.o player.o testFiles/testCard.o testFiles/testDeck.o testFiles/testX45s.o
+tests: 45s.o card.o deck.o player.o gameState.o testFiles/testCard.o testFiles/testDeck.o testFiles/testX45s.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
 
 testCard.o: testFiles/testCard.cpp

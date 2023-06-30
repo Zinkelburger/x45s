@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <exception>
-#include "trumpGlobalVariable.hpp"
+#include "gameState.hpp"
 #include "suit.hpp"
 
 using std::ostream;
@@ -57,11 +57,13 @@ ostream& operator<<(ostream& out, const Card& c) {
 // Returns 1 (true) if the left card is smaller than the right card, and 0 if false
 // Precondition: suitLed is initalized and neither of the cards is trump (checked by operator<)
 int evaluateOffSuit(const Card& lhs, const Card& rhs) {
-    if (suitLed == INT32_MIN) {
+    GameState* gameState = GameState::getInstance();
+
+    if (!gameState->getSuitLedInitalized()) {
         throw std::invalid_argument("Suit Led is not initalized!");
     }
     // neither card is suitLed. They will both lose, and there is no way to directly compare them.
-    if (lhs.getSuit() != suitLed && rhs.getSuit() != suitLed) {
+    if (lhs.getSuit() != gameState->getSuitLed() && rhs.getSuit() != gameState->getSuitLed()) {
         return -1;
     }
 
@@ -69,14 +71,14 @@ int evaluateOffSuit(const Card& lhs, const Card& rhs) {
     int heartsAndDiamonds[14] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
     int clubsAndSpades[14] = {13, 12, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     int* order;
-    if (suitLed == Suit::HEARTS || suitLed == Suit::DIAMONDS) {
+    if (gameState->getSuitLed() == Suit::HEARTS || gameState->getSuitLed() == Suit::DIAMONDS) {
         order = heartsAndDiamonds;
     } else {
         order = clubsAndSpades;
     }
 
     // both cards are suitLed
-    if (lhs.getSuit() == suitLed && rhs.getSuit() == suitLed) {
+    if (lhs.getSuit() == gameState->getSuitLed() && rhs.getSuit() == gameState->getSuitLed()) {
         for (int i = 0; i < 14; i++) {
             if (rhs.getValue() == order[i]) {
                 return true;
@@ -85,10 +87,10 @@ int evaluateOffSuit(const Card& lhs, const Card& rhs) {
             }
         }
     // right side is suitLed and left is not
-    } else if (rhs.getSuit() == suitLed && lhs.getSuit() != suitLed) {
+    } else if (rhs.getSuit() == gameState->getSuitLed() && lhs.getSuit() != gameState->getSuitLed()) {
         return true;
     // left side is suitLed and right is not
-    } else if (rhs.getSuit() != suitLed && lhs.getSuit() == suitLed) {
+    } else if (rhs.getSuit() != gameState->getSuitLed() && lhs.getSuit() == gameState->getSuitLed()) {
         return false;
     }
     throw("How the hell did you get here");
@@ -97,7 +99,8 @@ int evaluateOffSuit(const Card& lhs, const Card& rhs) {
 // returns true if a card is higher than another card, considering the trump
 // precondition: trump is set. If both cards are offsuite, then suitLed must be set as well
 bool operator<(const Card& lhs, const Card& rhs) {
-    if (trump == INT32_MIN) {
+    GameState* gameState = GameState::getInstance();
+    if (!gameState->getTrumpInitalized()) {
         throw std::invalid_argument("Trump is not initalized!");
     }
     // all of the suits, in order from highest to lowest
@@ -112,8 +115,8 @@ bool operator<(const Card& lhs, const Card& rhs) {
     int* order;
 
     // neither card is trump
-    if ((lhs.getSuit() != trump && lhs.getSuit() != Suit::ACE_OF_HEARTS)
-    && (rhs.getSuit() != trump && rhs.getSuit() != Suit::ACE_OF_HEARTS)) {
+    if ((lhs.getSuit() != gameState->getTrump() && lhs.getSuit() != Suit::ACE_OF_HEARTS)
+    && (rhs.getSuit() != gameState->getTrump() && rhs.getSuit() != Suit::ACE_OF_HEARTS)) {
         int r = evaluateOffSuit(lhs, rhs);
         // TODO(zinkelburger): Find a better way to resolve "neither card is a winner" situation
         if (r == -1) {
@@ -123,9 +126,9 @@ bool operator<(const Card& lhs, const Card& rhs) {
     }
 
     // otherwise comparison is easy, just loop through the order until the highest card is found
-    if (trump == Suit::HEARTS) {
+    if (gameState->getTrump() == Suit::HEARTS) {
         order = hearts;
-    } else if (trump == Suit::DIAMONDS) {
+    } else if (gameState->getTrump() == Suit::DIAMONDS) {
         order = diamonds;
     } else {
         // compiler wants to make sure order is initalized, so I put it in an else
@@ -134,8 +137,8 @@ bool operator<(const Card& lhs, const Card& rhs) {
 
     // we know at least one of the cards is trump by this point
     // both cards are trump
-    if ((lhs.getSuit() == trump || lhs.getSuit() == Suit::ACE_OF_HEARTS)
-    && (rhs.getSuit() == trump || rhs.getSuit() == Suit::ACE_OF_HEARTS)) {
+    if ((lhs.getSuit() == gameState->getTrump() || lhs.getSuit() == Suit::ACE_OF_HEARTS)
+    && (rhs.getSuit() == gameState->getTrump() || rhs.getSuit() == Suit::ACE_OF_HEARTS)) {
         for (int i = 0; i < 14; i++) {
             if (rhs.getValue() == order[i]) {
                 return true;
@@ -144,12 +147,12 @@ bool operator<(const Card& lhs, const Card& rhs) {
             }
         }
     // right side is trump and left is not
-    } else if ((rhs.getSuit() == trump || rhs.getSuit() == Suit::ACE_OF_HEARTS)
-    && (lhs.getSuit() != trump && lhs.getSuit() != Suit::ACE_OF_HEARTS)) {
+    } else if ((rhs.getSuit() == gameState->getTrump() || rhs.getSuit() == Suit::ACE_OF_HEARTS)
+    && (lhs.getSuit() != gameState->getTrump() && lhs.getSuit() != Suit::ACE_OF_HEARTS)) {
         return true;
     // left side is trump and right is not
-    } else if ((rhs.getSuit() != trump && rhs.getSuit() != Suit::ACE_OF_HEARTS)
-    && (lhs.getSuit() == trump || lhs.getSuit() == Suit::ACE_OF_HEARTS)) {
+    } else if ((rhs.getSuit() != gameState->getTrump() && rhs.getSuit() != Suit::ACE_OF_HEARTS)
+    && (lhs.getSuit() == gameState->getTrump() || lhs.getSuit() == Suit::ACE_OF_HEARTS)) {
         return false;
     }
     throw("How the hell did you get here");

@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <utility>
 #include "suit.hpp"
-#include "trumpGlobalVariable.hpp"
 
 Deck::Deck() {
     // initalize 52 cards, Hearts = 1, Diamonds = 2, Clubs = 3, Spades = 4

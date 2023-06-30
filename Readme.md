@@ -130,5 +130,15 @@ operator< and all logical operators are defined. The comparison operators requir
 There are other comparison functions where you can pass a local variable instead of setting a global variable
 `bool Card::lessThan(const Card& other, int inpSuit, int inpTrump)` is a member function.
 
-## trumpGlobalVariable
-The program keeps track of the trump and suitLed via global variables. Only x45s should update them.
+## GameState
+The program keeps track of the trump and suitLed via a singleton class (#globalVariablesAreEvil). Only x45s should update them.
+
+There are getters and setters for trump & suitLed. You are restricted to valid trump & suits (0-3).
+
+`setTrumpLed` and `setSuitLed` will also set these variables to true:
+
+`bool trumpInitalized;`
+
+`bool suitLedInitalized;`
+
+You can check these variables through their getters. You can only set them with the trump & suitLed setters, but you can unset them with `unsetTrumpInitalized` and `unsetSuitLedInitalized`.

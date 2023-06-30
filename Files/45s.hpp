@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include "trumpGlobalVariable.hpp"
+#include "gameState.hpp"
 #include "deck.hpp"
 #include "player.hpp"
 
