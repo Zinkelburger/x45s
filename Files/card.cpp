@@ -233,6 +233,7 @@ int Card::evaluateOffSuit(const Card& other, int inpSuit) {
     }
 
     // now we know one of the cards is of inpSuit
+    // not really hearts, as the ace of hearts should have been evaluated as trump
     int heartsAndDiamonds[14] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
     int clubsAndSpades[14] = {13, 12, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     int* order;

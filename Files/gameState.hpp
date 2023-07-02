@@ -2,6 +2,7 @@
 #pragma once
 // Removed global variables and replaced with a singleton class
 // x45s is the only one who should change the singleton class
+#include <stdexcept>
 class GameState {
  private:
     int trump;
@@ -26,6 +27,9 @@ class GameState {
     }
 
     int getTrump() const {
+        if (trumpInitalized == false) {
+            throw std::logic_error("Error: Trump is not initialized");
+        }
         return trump;
     }
 
@@ -35,6 +39,9 @@ class GameState {
     }
 
     int getSuitLed() const {
+        if (suitLedInitalized == false) {
+            throw std::logic_error("Error: SuitLed is not initialized");
+        }
         return suitLed;
     }
 
