@@ -156,7 +156,7 @@ std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
         // player who won will lead the next trick
         firstPlayer = winnerAndCard.second;
 
-        if (winnerAndCard.first > highCard.first || i == 0) {
+        if (i == 0 || winnerAndCard.first > highCard.first) {
             highCard = winnerAndCard;
         }
     }
@@ -200,7 +200,7 @@ int x45s::getBidder() {
 
     // if no player bid, then bag the dealer
     if (maxBid.first <= 0) {
-        currentBid.second = players[playerDealing]->bagged();
+        currentBid = std::make_pair(15, players[playerDealing]->bagged());
         firstPlayer = playerDealing;
     } else {
         currentBid = players[playerDealing]->getBid(bidHistory);
@@ -231,8 +231,8 @@ Suit::Suit x45s::getBidSuit() {
 bool x45s::determineIfWonBidAndDeduct() {
     // if (current score - the amount bid) >= to their score before they bid
     // then they made their bid
-    if (playerScores[bidder] - bidAmount < bidderInitialScore) {
-        playerScores[bidder] = bidderInitialScore - bidAmount;
+    if (playerScores[bidder % 2] - bidAmount < bidderInitialScore) {
+        playerScores[bidder % 2] = bidderInitialScore - bidAmount;
         return false;
     }
     return true;
