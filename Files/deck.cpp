@@ -13,10 +13,6 @@ Deck::Deck() {
             pack.push_back(Card(j, i));
         }
     }
-    // set the ace of hearts to its special suit
-    // fortunately this is the first card made (1,1), so I don't have to search for it
-    pack[0].setSuit(Suit::ACE_OF_HEARTS);
-    pack[0].setValue(-1);
 }
 
 void Deck::shuffle() {
@@ -70,10 +66,6 @@ void Deck::reset() {
             pack.push_back(Card(j, i));
         }
     }
-    // set the ace of hearts to its special suit
-    // fortunately this is the first card made (1,1)
-    pack[0].setSuit(Suit::ACE_OF_HEARTS);
-    pack[0].setValue(-1);
 }
 
 void Deck::removeCard(const Card& c) {

@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = --std=c++17 -Wall -Werror -pedantic -O3
+CFLAGS = --std=c++17 -Wall -Werror -Wextra -Wshadow -Wlogical-op -Wduplicated-branches -Wuseless-cast -Wduplicated-cond -pedantic -O3
 LIB = -lboost_unit_test_framework
 
 .PHONY: all clean lint tests

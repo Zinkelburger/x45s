@@ -5,11 +5,12 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-#include "gameState.hpp"
 #include "deck.hpp"
 #include "player.hpp"
 #include "suit.hpp"
+#include "card.hpp"
 
+// pass it players that are already initalized
 x45s::x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
     initalizedPlayersWithNew = false;
     players.push_back(p1);
@@ -17,13 +18,18 @@ x45s::x45s(Player* p1, Player* p2, Player* p3, Player* p4) : deck() {
     players.push_back(p3);
     players.push_back(p4);
 
-    // initalize both the player scores to 0
-    playerScores[0] = 0;
-    playerScores[1] = 0;
-    // player 0 can deal first. This is incremented mod 4 after every deal
+    // initalize both the teams' scores to 0
+    teamScores[0] = 0;
+    teamScores[1] = 0;
+
+    teamScoresThisHand[0] = 0;
+    teamScoresThisHand[1] = 0;
+
+    // player 0 can deal first
     playerDealing = 0;
 }
 
+// pass it constructors, with new and stuff
 x45s::x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
     std::function<Player*()> cp3, std::function<Player*()> cp4) : deck() {
     initalizedPlayersWithNew = true;
@@ -33,19 +39,24 @@ x45s::x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
     players.push_back(cp4());
 
     // initalize both the player scores to 0
-    playerScores[0] = 0;
-    playerScores[1] = 0;
+    teamScores[0] = 0;
+    teamScores[1] = 0;
+
+    teamScoresThisHand[0] = 0;
+    teamScoresThisHand[1] = 0;
+
     // player 0 can deal first. This is incremented mod 4 after every deal
     playerDealing = 0;
 }
 
+// shuffles the deck 10 times
 void x45s::shuffle() {
     deck.shuffle(10);
 }
-// deal hand to players
+
+// deals players until each has 5 cards
 void x45s::deal_players() {
     // make sure each player is dealt until their hand is 5 cards
-    // have to use a traditional for loop instead of for-each because I am adding to the vector
     for (unsigned i = 0; i < players.size(); i++) {
         while (players[i]->getSize() < 5) {
             Card c = deck.pop_back();
@@ -53,7 +64,8 @@ void x45s::deal_players() {
         }
     }
 }
-// deals the kiddie to the player who won the bid.
+
+// deals the kiddie (3 cards) to the player who won the bid.
 // Need to input the number of the player who won the bid
 void x45s::deal_kiddie(int winner) {
     if (winner < 0 || winner > 3) {
@@ -64,60 +76,53 @@ void x45s::deal_kiddie(int winner) {
         players[winner]->dealCard(deck.pop_back());
     }
 }
+
 // evaluates the cards thrown by all four players. Returns the winning card
 // precondition: suit led and trump have been previously set
-Card x45s::evaluate_trick(Card card1, Card card2, Card card3, Card card4) {
-    // may be slower than like 15 if statements, but it is very readable
+Card x45s::evaluate_trick(const Card& card1, const Card& card2, const Card& card3, const Card& card4) {
     std::vector<Card> c = {card1, card2, card3, card4};
-    return *std::max_element(c.begin(), c.end());
+    // may be slower than like 15 if statements, but it is very readable
+    return *std::max_element(c.begin(), c.end(), [this](const Card& lhs, const Card& rhs) {
+        return lessThan(lhs, rhs, suitLed, trump);
+    });
 }
 
-// evaluate the trick thrown by all four players. Returns the winning card
+// evaluates the cards thrown by all four players. Returns the winning card
 Card x45s::evaluate_trick(std::vector<Card> c) {
     // may be slower than like 15 if statements, but it is very readable
-    return *std::max_element(c.begin(), c.end());
+    return *std::max_element(c.begin(), c.end(), [this](const Card& lhs, const Card& rhs) {
+        return lessThan(lhs, rhs, suitLed, trump);
+    });
 }
 
-// adds 5 points to the team input (team 0 or 1)
-void x45s::updateScores(int player) {
-    if (player != 0 && player != 1) {
-        throw std::invalid_argument("Invalid player " + std::to_string(player) +
+// Increments the team's score by 5 (team is either 0 or 1)
+void x45s::updateScores(int team) {
+    if (team != 0 && team != 1) {
+        throw std::invalid_argument("Invalid player " + std::to_string(team) +
         " in updateScores. Must be 0 or 1");
     }
-    playerScores[player] += 5;
+    teamScores[team] += 5;
 }
 
 // returns the score of the team input (team 0 or 1)
-int x45s::getTeamScore(int player) {
-    if (player != 0 && player != 1) {
+int x45s::getTeamScore(int team) {
+    if (team != 0 && team != 1) {
         throw std::invalid_argument("Invalid player " +
-        std::to_string(player) + " in updateScores. Must be 0 or 1");
+        std::to_string(team) + " in updateScores. Must be 0 or 1");
     }
-    return playerScores[player];
+    return teamScores[team];
 }
 
 // returns true if either team has won
 bool x45s::hasWon() {
     // if either team has 120 points or greater, then they have won
-    if (playerScores[0] >= 120) {
-        return true;
-    }
-    if (playerScores[1] >= 120) {
-        return true;
-    }
-    return false;
+    return teamScores[0] >= 120 || teamScores[1] >= 120;
 }
 
-// Returns the number of the player that has won the game (0 or 1).
+// Returns the number of the team that won the game (0 or 1).
 // Returns -1 if no one has won
-int x45s::whichPlayerWon() {
-    if (playerScores[0] >= 120) {
-            return 0;
-    }
-    if (playerScores[1] >= 120) {
-        return 1;
-    }
-    return -1;
+int x45s::whichTeamWon() {
+    return (teamScores[0] >= 120) ? 0 : (teamScores[1] >= 120) ? 1 : -1;
 }
 
 // calls each player's discard method
@@ -133,75 +138,71 @@ int x45s::getBidAmount() {
 
 // returns the player who bid and if they won the bid or not
 std::pair<int, bool> x45s::dealBidAndFullFiveTricks() {
+    // initial deal
     deal_players();
 
-    int bidder = getBidder();
-    setBid(bidAmount, bidder);
+    // have players bid
+    biddingPhase();
 
-    GameState* gameState = GameState::getInstance();
-    gameState->setTrump(getBidSuit());
-
+    // deal the kiddie to the player who won the bid
     deal_kiddie(bidder);
-    havePlayersDiscard();
 
+    // let the players discard. Then deal them more cards
+    havePlayersDiscard();
     deal_players();
 
-    int firstPlayer = bidder + 1;
+    int firstPlayer = bidder;
     // stores the card and the player who played it
     std::pair<Card, int> highCard;
 
-    // there are 5 tricks in each hand
+    // 5 tricks in each hand
     for (int i = 0; i < 5; i++) {
         std::pair<Card, int> winnerAndCard = havePlayersPlayCardsAndEvaluate(firstPlayer);
         // player who won will lead the next trick
         firstPlayer = winnerAndCard.second;
 
-        if (i == 0 || winnerAndCard.first > highCard.first) {
+        if (i == 0 || lessThan(highCard.first, winnerAndCard.first, suitLed, trump)) {
             highCard = winnerAndCard;
         }
     }
-    // give the high card bonus to the team
+    // give the team with the high card their bonus
     updateScores(highCard.second % 2);
 
-    return std::make_pair(bidder, determineIfWonBidAndDeduct());
-}
-
-// sets both the bid amount and the player who bid
-void x45s::setBid(int bid, int bidderNum) {
-    bidAmount = bid;
-    bidder = bidderNum;
-
-    // keep track of the bidder's score to detect if they won their bid or not
-    bidderInitialScore = playerScores[bidder];
+    return {bidder, deductAfterBid()};
 }
 
 // gets the bids for each player and increments the dealer
-int x45s::getBidder() {
+void x45s::biddingPhase() {
     // start the hand with a fresh bid history
     bidHistory.clear();
-    // pair is <value, suit>
+
+    // bid is <value, suit>
     std::pair<int, Suit::Suit> currentBid;
     // initalize maxBid to something small, so it is replaced immediately
-    std::pair<int, Suit::Suit> maxBid = {INT32_MIN, Suit::ACE_OF_HEARTS};
-    int firstPlayer = -1;
+    std::pair<int, Suit::Suit> maxBid = {INT32_MIN, Suit::INVALID};
+    int playerWinningBid = -1;
 
-    // the player dealing bids last and can possiblly be bagged
+    // the dealing player bids last, and can possiblly be bagged
     for (int i = playerDealing + 1; i < playerDealing + 4; i++) {
+        // get the player's bid. Pass them the bidHistory
         currentBid = players[i % 4]->getBid(bidHistory);
-        // .first is the value
-        if (currentBid.first != 0) {
-            bidHistory.push_back(currentBid.first);
-            if (currentBid.first > maxBid.first) {
-                maxBid = currentBid;
-                firstPlayer = i;
-            }
+        // save the bid history
+        bidHistory.push_back(currentBid.first);
+        if (currentBid.first > maxBid.first) {
+            // save the bid value, suit
+            maxBid = currentBid;
+            // save the player # who bid the most
+            playerWinningBid = i % 4;
         }
     }
 
-    // if no player bid, then bag the dealer
+    // dealer's bid. Either bagged or normal
     if (maxBid.first <= 0) {
-        currentBid = std::make_pair(15, players[playerDealing]->bagged());
-        firstPlayer = playerDealing;
+        // dealer is bagged
+        // player bids 15, gets to pick the suit
+        currentBid = {15, players[playerDealing]->bagged()};
+        playerWinningBid = playerDealing;
+    // otherwise the dealer bids like normal
     } else {
         currentBid = players[playerDealing]->getBid(bidHistory);
         // .first is the value
@@ -209,33 +210,37 @@ int x45s::getBidder() {
             bidHistory.push_back(currentBid.first);
             if (currentBid.first > maxBid.first) {
                 maxBid = currentBid;
-                firstPlayer = playerDealing;
+                playerWinningBid = playerDealing;
             }
         }
     }
+
+    bidAmount = maxBid.first;
+    trump = maxBid.second;
 
     // increment the player dealing mod 4
     playerDealing++;
     playerDealing %= 4;
 
-    bidAmount = maxBid.first;
-    bidSuit = maxBid.second;
-
-    return firstPlayer;
+    bidder = playerWinningBid;
 }
 
-Suit::Suit x45s::getBidSuit() {
-    return bidSuit;
+Suit::Suit x45s::getTrump() {
+    return trump;
 }
 
-bool x45s::determineIfWonBidAndDeduct() {
-    // if (current score - the amount bid) >= to their score before they bid
-    // then they made their bid
-    if (playerScores[bidder % 2] - bidAmount < bidderInitialScore) {
-        playerScores[bidder % 2] = bidderInitialScore - bidAmount;
-        return false;
+bool x45s::deductAfterBid() {
+    bool wonBid = true;
+    // opposing team always gets their score added
+    teamScores[bidder + 1 % 2] += teamScoresThisHand[bidder + 1 % 2];
+
+    // deduct if the bidder did not make their bid
+    if (teamScoresThisHand[bidder % 2] < bidAmount) {
+        teamScores[bidder % 2] -= bidAmount;
+        wonBid = false;
     }
-    return true;
+
+    return wonBid;
 }
 
 void x45s::reset() {
@@ -243,42 +248,33 @@ void x45s::reset() {
         e->resetHand();
     }
     deck.reset();
-    GameState* gameState = GameState::getInstance();
-    gameState->unsetSuitLedInitalized();
-    gameState->unsetTrumpInitalized();
+    teamScoresThisHand[0] = 0;
+    teamScoresThisHand[1] = 0;
 }
 
 // returns a vector of the cards played by each player
-// precondition: playerLeading is set to the dealer + 1
 std::vector<Card> x45s::havePlayersPlayCards(int playerLeading) {
     std::vector<Card> cardsPlayed(4);
-    cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
 
-    GameState* gameState = GameState::getInstance();
+    // first player, so we can get suitLed
+    cardsPlayed[playerLeading % 4] = players[playerLeading % 4]->playCard(cardsPlayed);
 
-    gameState->setSuitLed(cardsPlayed[playerLeading % 4].getSuit());
-    if (gameState->getSuitLed() == Suit::ACE_OF_HEARTS) {
-        gameState->setSuitLed(gameState->getTrump());
-    }
+    suitLed = cardsPlayed[playerLeading % 4].getSuit();
+
     for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
-       cardsPlayed[playerLeading % 4] = (*(players[cardNum % 4])).playCard(cardsPlayed);
+       cardsPlayed[playerLeading % 4] = players[cardNum % 4]->playCard(cardsPlayed);
     }
     return cardsPlayed;
 }
 
-// have players play their cards and returns the Card & Player who won the trick
-// precondition: playerLeading is set to the dealer + 1
+// have players play their cards, returns the Card & Player who won the trick
 std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
     std::vector<Card> cardsPlayed(4);
 
-    cardsPlayed[playerLeading % 4] = (*(players[playerLeading % 4])).playCard(cardsPlayed);
+    cardsPlayed[playerLeading % 4] = players[playerLeading % 4]->playCard(cardsPlayed);
     
-    GameState* gameState = GameState::getInstance();
-    gameState->setSuitLed(cardsPlayed[playerLeading % 4].getSuit());
+    suitLed = cardsPlayed[playerLeading % 4].getSuit();
 
-    if (gameState->getSuitLed() == Suit::ACE_OF_HEARTS) {
-        gameState->setSuitLed(gameState->getTrump());
-    }
     // calls playCard for the other 3 players and stores their card in an array
     for (int cardNum = ++playerLeading; cardNum < 4 + playerLeading; cardNum++) {
         cardsPlayed[playerLeading % 4] = (*(players[cardNum % 4])).playCard(cardsPlayed);
@@ -295,6 +291,6 @@ std::pair<Card, int> x45s::havePlayersPlayCardsAndEvaluate(int playerLeading) {
     } else {
         winningPlayer = 3;
     }
-    return std::make_pair(winningCard, winningPlayer);
+    return {winningCard, winningPlayer};
 }
 

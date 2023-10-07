@@ -2,10 +2,10 @@
 #pragma once
 namespace Suit {
     enum Suit {
-        ACE_OF_HEARTS,
         HEARTS,
         DIAMONDS,
         CLUBS,
-        SPADES
+        SPADES,
+        INVALID
     };
 }

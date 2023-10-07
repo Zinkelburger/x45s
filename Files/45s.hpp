@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include "gameState.hpp"
 #include "deck.hpp"
+#include "card.hpp"
 #include "player.hpp"
 
 // start with an x because I can't start with a number
@@ -30,26 +30,25 @@ class x45s {
     // deal the kiddie to the player who won the bid. (0-3)
     void deal_kiddie(int winner);
     // evaluate the trick thrown by all four players. Returns the winning card
-    Card evaluate_trick(Card card1, Card card2, Card card3, Card card4);
+    Card evaluate_trick(const Card& card1, const Card& card2, const Card& card3, const Card& card4);
     Card evaluate_trick(std::vector<Card> c);
 
-    // keep track of the scores. If someone gets 120 points, they win
-    void updateScores(int player);
+    // Increments the team's score by 5 (team is either 0 or 1)
+    void updateScores(int team);
 
     bool hasWon();
     // Returns the number of the player that has won the game (from 0 to 3).
     // Returns -1 if no one has won
-    int whichPlayerWon();
+    int whichTeamWon();
     // calls the player discard method for each player
     void havePlayersDiscard();
     // a getter, not the other thing
     int getBidAmount();
-    // sets both the bid amount and the player who bid
-    void setBid(int bid, int bidderNum);
-    // Calls the getBid method & returns the player who won the bid (0, 1, 2, 3)
-    int getBidder();
-    // returns the suit of the bid won
-    Suit::Suit getBidSuit();
+
+    // Has each player bid & returns the player who won the bid (0, 1, 2, 3)
+    void biddingPhase();
+    // returns the trump
+    Suit::Suit getTrump();
 
     int getHandSize(int playerNum) {
         return players[playerNum]->getSize();
@@ -61,7 +60,7 @@ class x45s {
         return *(players[playerNum]);
     }
 
-    bool determineIfWonBidAndDeduct();
+    bool deductAfterBid();
     int getTeamScore(int player);
 
     std::pair<int, bool> dealBidAndFullFiveTricks();
@@ -75,14 +74,18 @@ class x45s {
     Deck deck;
     // Array of pointers to an abstract class
     std::vector<Player*> players;
-    std::vector<Card> discardDeck;
+    // stores the max bid amounts, so players can use it in their decisions
     std::vector<int> bidHistory;
     // only two player scores because there are two teams
-    int playerScores[2];
+    int teamScores[2];
+    int teamScoresThisHand[2];
+
     int bidAmount;
-    Suit::Suit bidSuit;
     int bidder;
-    int bidderInitialScore;
+
+    Suit::Suit trump;
+    Suit::Suit suitLed;
+
     int playerDealing;
     bool initalizedPlayersWithNew;
 };

@@ -1,6 +1,4 @@
 # 45s C++ Library
-<work in progress, should be completed within the next week>
-
 Implementing 45s so you don't have to. To make the library easier to use, there is a single large .cpp & .hpp file, so you can include that one. For a more organized look at the code/documentation, you can look in the `Files` folder.
 
 There is a 45s class, a card class, a deck class, and an abstract Player class. You are encouraged to implement the Player class.
