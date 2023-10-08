@@ -48,20 +48,21 @@ class Card {
         value = inpValue;
     }
 
-    bool isTrump(int trump) const {
+    bool isTrump(Suit::Suit trump) const {
         return suit == trump || isAceOfHearts;
     }
 
-    bool isSuitLed(int suitLed) const {
+    bool isSuitLed(Suit::Suit suitLed) const {
         return suit == suitLed;
     }
 
     // compares two card. Uses evaluateOffSuit if they are offSuit
-    friend bool lessThan(const Card& card1, const Card& card2, Suit::Suit inpSuit, Suit::Suit inpTrump);
-    friend bool evaluateOffSuit(const Card& lhs, const Card& rhs, Suit::Suit suitLed);   
+    friend bool lessThan(
+        const Card& card1, const Card& card2, Suit::Suit suitLed, Suit::Suit trump);
+    friend bool evaluateOffSuit(const Card& lhs, const Card& rhs, Suit::Suit suitLed);
 };
 
 // inspired from https://stackoverflow.com/questions/4421706/what-are-the-basic-rules-and-idioms-for-operator-overloading
-inline bool operator==(const Card& lhs, const Card& rhs) {return lhs.getSuit() == rhs.getSuit()
-&& rhs.getValue() == lhs.getValue();}
-inline bool operator!=(const Card& lhs, const Card& rhs) {return !operator==(lhs, rhs);}
+inline bool operator==(const Card& lhs, const Card& rhs) { return lhs.getSuit() == rhs.getSuit()
+&& rhs.getValue() == lhs.getValue(); }
+inline bool operator!=(const Card& lhs, const Card& rhs) { return !operator==(lhs, rhs); }

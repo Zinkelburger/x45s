@@ -27,6 +27,10 @@ testDeck.o: testFiles/testDeck.cpp
 testX45s.o: testFiles/testX45s.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
+concatenate:
+	cat *.cpp > ../x45s.cpp
+	cat *.hpp > ../x45s.hpp
+
 lint:
 	cpplint *.cpp *.hpp
 

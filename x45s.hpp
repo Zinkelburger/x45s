@@ -7,270 +7,229 @@
 #include <iostream>
 
 namespace Suit {
-    enum Suit {
-        ACE_OF_HEARTS,
-        HEARTS,
-        DIAMONDS,
-        CLUBS,
-        SPADES
-    };
+        enum Suit {
+                HEARTS = 1,
+                DIAMONDS,
+                CLUBS,
+                SPADES,
+                INVALID
+        };
 }
 
 namespace x45s {
 // These cards are programmed to follow 45s rules for <, >, ==, etc.
-// Could store 1 card in 1 char to save space, each only needs values 1-13 and 0-4
-// That would be an evil monstrosity, but if I need to save space, it could be done...
+// Comparison operators require knowledge of the current trump and suit
 class Card {
     int value;
-    int suit;
+    Suit::Suit suit;
+    bool isAceOfHearts;
 
  public:
-    // I have a default constructor so I can make pairs of cards
-    Card() : value(-1000), suit(-1000) {}
+    // I need a default constructor so I can make pairs of cards
+    Card() : value(-1000), suit(Suit::INVALID) {}
     // value, suit
-    Card(int inpValue, int inpSuit) : value(inpValue), suit(inpSuit) {}
+    Card(int inpValue, int inpSuit) : value(inpValue), suit(static_cast<Suit::Suit>(inpSuit)) {
+        isAceOfHearts = value == 1 && suit == Suit::HEARTS;
+        value = isAceOfHearts ? 0xACE : value;
+    }
+    Card(int inpValue, Suit::Suit inpSuit) : value(inpValue), suit(inpSuit) {
+        isAceOfHearts = value == 1 && suit == Suit::HEARTS;
+        value = isAceOfHearts ? 0xACE : value;
+    }
 
+    // outputs the card in string format, e.g. "King of Hearts, "
     friend std::ostream& operator<<(std::ostream& out, const Card& c);
 
     int getValue() const {
         return value;
     }
-    int getSuit() const {
+
+    Suit::Suit getSuit() const {
         return suit;
     }
+
     void setSuit(int inpSuit) {
+        suit = static_cast<Suit::Suit>(inpSuit);
+    }
+    void setSuit(Suit::Suit inpSuit) {
         suit = inpSuit;
     }
+
     void setValue(int inpValue) {
         value = inpValue;
     }
 
-    // a comparison function that does not use global variables
-    // so you can pass it the suitLed and trump without changing them globally
-    bool Card::lessThan(const Card& other, int inpSuit, int inpTrump);
+    bool isTrump(Suit::Suit trump) const {
+        return suit == trump || isAceOfHearts;
+    }
 
-    // overloaded, this one takes a suitLed
-    // Returns 1 (true) if the left card is smaller than the right card, and 0 if false
-    // Precondition: suitLed is initalized and neither of the cards is trump (checked by operator<)
-    int Card::evaluateOffSuit(const Card& other, int suitLed);
+    bool isSuitLed(Suit::Suit suitLed) const {
+        return suit == suitLed;
+    }
+
+    // compares two card. Uses evaluateOffSuit if they are offSuit
+    friend bool lessThan(
+        const Card& card1, const Card& card2, Suit::Suit suitLed, Suit::Suit trump);
+    friend bool evaluateOffSuit(const Card& lhs, const Card& rhs, Suit::Suit suitLed);
 };
+
 // inspired from https://stackoverflow.com/questions/4421706/what-are-the-basic-rules-and-idioms-for-operator-overloading
-// operator< is not inline because it is a large function
-bool operator<(const Card& lhs, const Card& rhs);
-inline bool operator==(const Card& lhs, const Card& rhs) {return lhs.getSuit() == rhs.getSuit()
-&& rhs.getValue() == lhs.getValue();}
-inline bool operator!=(const Card& lhs, const Card& rhs) {return !operator==(lhs, rhs);}
-inline bool operator> (const Card& lhs, const Card& rhs) {return  operator<(rhs, lhs);}
-inline bool operator<=(const Card& lhs, const Card& rhs) {return !operator>(lhs, rhs);}
-inline bool operator>=(const Card& lhs, const Card& rhs) {return !operator<(lhs, rhs);}
+inline bool operator==(const Card& lhs, const Card& rhs) { return lhs.getSuit() == rhs.getSuit()
+&& rhs.getValue() == lhs.getValue(); }
+inline bool operator!=(const Card& lhs, const Card& rhs) { return !operator==(lhs, rhs); }
 
 class Deck {
  private:
-    // idk I needed a word different from deck and card
-    std::vector<Card> pack;
+        // idk I needed a word different from deck and card
+        std::vector<Card> pack;
  public:
-    Deck();
-    void shuffle();
-    void shuffle(int times);
-    Card pop_back();
-    Card peek_back();
-    void push_back(Card c);
-    void reset();
-    void removeCard(const Card& c);
-    void removeCard(int value, int suit);
-    bool containsCard(int value, int suit);
-    friend std::ostream& operator<<(std::ostream& out, const Deck& d);
-    int getSize() {
-        return pack.size();
-    }
-    // returns a copy of the deck
-    std::vector<Card> getPack() {
-        return pack;
-    }
+        Deck();
+        void shuffle();
+        void shuffle(int times);
+        Card pop_back();
+        Card peek_back();
+        void push_back(Card c);
+        void reset();
+        void removeCard(const Card& c);
+        void removeCard(int value, int suit);
+        bool containsCard(int value, int suit);
+        friend std::ostream& operator<<(std::ostream& out, const Deck& d);
+        int getSize() {
+                return pack.size();
+        }
+        // returns a copy of the deck
+        std::vector<Card> getPack() {
+                return pack;
+        }
 };
 
-
-// player is designed to be overriden by the user
+// make each player sf::drawable
+// player is designed to be overriden by Computer and Human
 class Player {
  protected:
-    std::vector<Card> hand;
+        std::vector<Card> hand;
 
  public:
-    Player() {}
-    template <class... Cards>
-    explicit Player(Cards... cards) : hand{cards...} {}
-    explicit Player(std::vector<Card> inpHand) : hand(inpHand) {}
-    virtual ~Player() {}
-    // add the card to the player's hand
-    void dealCard(Card c) {
-        // Card is passed by value so I can simply do this
-        hand.push_back(c);
-    }
-    // called after the player has lost the bid. They must keep 1 card
-    virtual void discard() = 0;
-    // pair is bidAmount, suit
-    virtual std::pair<int, Suit::Suit> getBid(const std::vector<int>& bidHistory) = 0;
-    // the player is forced to bid
-    virtual Suit::Suit bagged() = 0;
-    // should return the card you want to play and remove it from your hand
-    virtual Card playCard(const std::vector<Card>& cardsPlayedThisHand) = 0;
-    int getSize() {
-        return hand.size();
-    }
-    void resetHand() {
-        hand.clear();
-    }
-    void printHand() {
-        for (auto& c : hand) {
-            std::cout << c;
+        Player() {}
+        template <class... Cards>
+        explicit Player(Cards... cards) : hand{cards...} {}
+        explicit Player(std::vector<Card> inpHand) : hand(inpHand) {}
+        virtual ~Player() {}
+        // add the card to the player's hand
+        void dealCard(Card c) {
+                // Card is passed by value so I can simply do this
+                hand.push_back(c);
         }
-        std::cout << "\n";
-    }
-    // adds the hand and a trailing '\n'
-    std::ostream& printHand(std::ostream& out) {
-        for (auto& c : hand) {
-            out << c << " ";
+        // the player must keep at least 1 card
+        virtual void discard() = 0;
+        // pair is bidAmount, suit
+        virtual std::pair<int, Suit::Suit> getBid(const std::vector<int>& bidHistory) = 0;
+        // the player is forced to bid
+        virtual Suit::Suit bagged() = 0;
+        // should return the card you want to play and remove it from your hand
+        virtual Card playCard(const std::vector<Card>& cardsPlayedThisHand) = 0;
+        int getSize() {
+                return hand.size();
         }
-        out << "\n";
-        return out;
-    }
+        void resetHand() {
+                hand.clear();
+        }
+        void printHand() {
+                for (auto& c : hand) {
+                        std::cout << c;
+                }
+                std::cout << "\n";
+        }
+        // adds the hand and a trailing '\n'
+        std::ostream& printHand(std::ostream& out) {
+                for (auto& c : hand) {
+                        out << c << " ";
+                }
+                out << "\n";
+                return out;
+        }
 };
-
 // start with an x because I can't start with a number
 class x45s {
  public:
-    // no default constructor, have to give it the players at initalization
-    x45s() = delete;
-    x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
-    std::function<Player*()> cp3, std::function<Player*()> cp4);
-    // the user can manage the players' memory if they want to
-    x45s(Player* p1, Player* p2, Player* p3, Player* p4);
-    ~x45s() {
-        if (initalizedPlayersWithNew) {
-            for (auto player : players) {
-                delete player;
-            }
+        // no default constructor, have to give it the players at initalization
+        x45s() = delete;
+        x45s(std::function<Player*()> cp1, std::function<Player*()> cp2,
+        std::function<Player*()> cp3, std::function<Player*()> cp4);
+        // the user can manage the players' memory if they want to
+        x45s(Player* p1, Player* p2, Player* p3, Player* p4);
+        ~x45s() {
+                if (initalizedPlayersWithNew) {
+                        for (auto player : players) {
+                                delete player;
+                        }
+                }
         }
-    }
-    void deal_players();
-    void shuffle();
-    void reset();
-    // deal the kiddie to the player who won the bid. (0-3)
-    void deal_kiddie(int winner);
-    // evaluate the trick thrown by all four players. Returns the winning card
-    Card evaluate_trick(Card card1, Card card2, Card card3, Card card4);
-    Card evaluate_trick(std::vector<Card> c);
+        void deal_players();
+        void shuffle();
+        void reset();
+        // deal the kiddie to the player who won the bid. (0-3)
+        void deal_kiddie(int winner);
+        // evaluate the trick thrown by all four players. Returns the winning card
+        Card evaluate_trick(
+                const Card& card1, const Card& card2, const Card& card3, const Card& card4);
+        Card evaluate_trick(std::vector<Card> c);
 
-    // keep track of the scores. If someone gets 120 points, they win
-    void updateScores(int player);
+        // Increments the team's score by 5 (team is either 0 or 1)
+        void updateScores(int team);
 
-    bool hasWon();
-    // Returns the number of the player that has won the game (from 0 to 3).
-    // Returns -1 if no one has won
-    int whichPlayerWon();
-    // calls the player discard method for each player
-    void havePlayersDiscard();
-    // a getter, not the other thing
-    int getBidAmount();
-    // sets both the bid amount and the player who bid
-    void setBid(int bid, int bidderNum);
-    // Calls the getBid method & returns the player who won the bid (0, 1, 2, 3)
-    int getBidder();
-    // returns the suit of the bid won
-    Suit::Suit getBidSuit();
+        bool hasWon();
+        // Returns the number of the player that has won the game (from 0 to 3).
+        // Returns -1 if no one has won
+        int whichTeamWon();
+        // calls the player discard method for each player
+        void havePlayersDiscard();
+        // getters
+        int getBidAmount() { return bidAmount; }
+        int getBidder() { return bidder; }
 
-    int getHandSize(int playerNum) {
-        return players[playerNum]->getSize();
-    }
-    int getNumPlayers() {
-        return players.size();
-    }
-    const Player& getPlayer(int playerNum) {
-        return *(players[playerNum]);
-    }
+        // Has each player bid & returns the player who won the bid (0, 1, 2, 3)
+        void biddingPhase();
+        // returns the trump
+        Suit::Suit getTrump() { return trump; }
 
-    bool determineIfWonBidAndDeduct();
-    int getTeamScore(int player);
+        int getHandSize(int playerNum) {
+                return players[playerNum]->getSize();
+        }
+        int getNumPlayers() {
+                return players.size();
+        }
+        const Player& getPlayer(int playerNum) {
+                return *(players[playerNum]);
+        }
 
-    std::pair<int, bool> dealBidAndFullFiveTricks();
+        bool deductAfterBid();
+        int getTeamScore(int player);
 
-    // returns the cards the players played
-    std::vector<Card> havePlayersPlayCards(int playerLeading);
-    // have players play their cards and returns the player who won the trick
-    std::pair<Card, int> havePlayersPlayCardsAndEvaluate(int playerLeading);
+        std::pair<int, bool> dealBidAndFullFiveTricks();
+
+        // returns the cards the players played
+        std::vector<Card> havePlayersPlayCards(int playerLeading);
+        // have players play their cards and returns the player who won the trick
+        std::pair<Card, int> havePlayersPlayCardsAndEvaluate(int playerLeading);
 
  private:
-    Deck deck;
-    // Array of pointers to an abstract class
-    std::vector<Player*> players;
-    std::vector<Card> discardDeck;
-    std::vector<int> bidHistory;
-    // only two player scores because there are two teams
-    int playerScores[2];
-    int bidAmount;
-    Suit::Suit bidSuit;
-    int bidder;
-    int bidderInitialScore;
-    int playerDealing;
-    bool initalizedPlayersWithNew;
+        Deck deck;
+        // Array of pointers to an abstract class
+        std::vector<Player*> players;
+        // stores the max bid amounts, so players can use it in their decisions
+        std::vector<int> bidHistory;
+        // only two player scores because there are two teams
+        int teamScores[2];
+        int teamScoresThisHand[2];
+
+        int bidAmount;
+        int bidder;
+
+        Suit::Suit trump;
+        Suit::Suit suitLed;
+
+        int playerDealing;
+        bool initalizedPlayersWithNew;
 };
-
-class GameState {
- private:
-    int trump;
-    int suitLed;
-    bool trumpInitalized;
-    bool suitLedInitalized;
-    static GameState* instance;
-
-    GameState() : trump(0), suitLed(0), trumpInitalized(false), suitLedInitalized(false) {}
-
- public:
-    static GameState* getInstance() {
-        if (instance == nullptr) {
-            instance = new GameState();
-        }
-        return instance;
-    }
-
-    void setTrump(int trump) {
-        this->trump = trump;
-        trumpInitalized = true;
-    }
-
-    int getTrump() const {
-        if (trumpInitalized == false) {
-            throw std::logic_error("Error: Trump is not initialized");
-        }
-        return trump;
-    }
-
-    void setSuitLed(int suitLed) {
-        this->suitLed = suitLed;
-        suitLedInitalized = true;
-    }
-
-    int getSuitLed() const {
-        if (suitLedInitalized == false) {
-            throw std::logic_error("Error: SuitLed is not initialized");
-        }
-        return suitLed;
-    }
-
-    bool getTrumpInitalized() {
-        return trumpInitalized;
-    }
-
-    bool getSuitLedInitalized() {
-        return suitLedInitalized;
-    }
-
-    void unsetTrumpInitalized() {
-        trumpInitalized = false;
-    }
-
-    void unsetSuitLedInitalized() {
-        suitLedInitalized = false;
-    }
-};
-}  // namespace x45s
+}

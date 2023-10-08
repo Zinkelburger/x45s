@@ -1,11 +1,11 @@
 // Copyright Andrew Bernal 2023
 #pragma once
 namespace Suit {
-    enum Suit {
-        HEARTS,
-        DIAMONDS,
-        CLUBS,
-        SPADES,
-        INVALID
-    };
+        enum Suit {
+                HEARTS = 1,
+                DIAMONDS,
+                CLUBS,
+                SPADES,
+                INVALID
+        };
 }
